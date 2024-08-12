@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="TestNCMS">
+<mapper namespace="NCMS">
 
   <!-- 데이터베이스 삭제 -->
   <update id="beforePartProcessing2" exeType="line">
@@ -17,7 +17,7 @@
   <!-- 권한 부여 --><!--
   <update id="afterPartProcessing" exeType="line">
     <![CDATA[
-    GRANT ALL PRIVILEGES ON `TestNCMS`.* TO 'root'@'125.133.198.70';
+    GRANT ALL PRIVILEGES ON `NCMS`.* TO 'root'@'125.133.198.70';
     FLUSH PRIVILEGES;
     ]]>
   </update>-->

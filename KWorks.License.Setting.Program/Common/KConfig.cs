@@ -9,6 +9,6 @@ namespace KWorks.License.Setting.Program.Common
     public class KConfig
     {
         public static string DefaultDatabaseName = "MARIADB";
-        public static string DatabaseName = "TestNCMS";
+        public static string DatabaseName = "NCMS";
     }
 }

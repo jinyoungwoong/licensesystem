@@ -92,7 +92,7 @@ namespace KWorks.License.Setting.Program.Views
             this.labelControl1.AutoSizeMode = DevExpress.XtraEditors.LabelAutoSizeMode.None;
             this.labelControl1.Location = new System.Drawing.Point(42, 85);
             this.labelControl1.Name = "labelControl1";
-            this.labelControl1.Size = new System.Drawing.Size(281, 29);
+            this.labelControl1.Size = new System.Drawing.Size(287, 29);
             this.labelControl1.TabIndex = 3;
             this.labelControl1.Text = "MariaDB (mariadb-11.4.2-winx64.msi Ver.)\r\n";
             // 
