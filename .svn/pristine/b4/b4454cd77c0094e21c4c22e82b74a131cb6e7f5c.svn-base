@@ -1,0 +1,320 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="FocasMonitor">
+
+	<!-- 테이블 생성 : t_cd_machine -->
+	<update id ="beforeMachine" exeType="line">
+		DROP TABLE IF EXISTS t_cd_machine
+	</update>
+	<update id ="createMachine" exeType="package">
+		CREATE TABLE public.t_cd_machine
+		(
+			machine_cd character varying(32) NOT NULL,
+			machine_nm character varying(256),
+			model character varying(256),
+			ip_adr character varying(32) NOT NULL,
+			port integer NOT NULL,
+			remarks character varying(256),
+			created_on timestamp with time zone NOT NULL,
+			modified_on timestamp with time zone NOT NULL,
+			starttime timestamp with time zone DEFAULT (('now'::text)::date + '08:00:00'::interval),
+			finishtime timestamp with time zone DEFAULT (('now'::text)::date + '17:00:00'::interval),
+			emp_cd text,
+			CONSTRAINT pk_t_cd_machine PRIMARY KEY (machine_cd)
+		)
+	</update>
+
+	<!-- 테이블 생성 : t_nc_history -->
+	<update id ="beforeHistory" exeType="line">
+		DROP TABLE IF EXISTS t_nc_history
+	</update>
+	<update id ="createHistory" exeType="package">
+		CREATE TABLE public.t_nc_history
+		(
+		machine_cd character varying(32) NOT NULL,
+		trnx_seq numeric(9,0) NOT NULL,
+		trnx_time timestamp with time zone NOT NULL,
+		is_connected character(1) NOT NULL DEFAULT '0'::bpchar,
+		cnc_type character varying(2),
+		mt_type character varying(2),
+		series character varying(4),
+		version character varying(4),
+		max_axis character varying(2),
+		axes character varying(2),
+		addinfo character varying(256),
+		aut integer,
+		run integer,
+		motion integer,
+		mstb integer,
+		alarm integer,
+		prgnum integer,
+		prgmnum integer,
+		acts integer,
+		actf integer,
+		spload integer,
+		spindle_data character varying(256),
+		axis_data character varying(256),
+		part_count integer,
+		parts_total integer,
+		operating_time character varying(256),
+		cutting_time character varying(256),
+		cycle_time character varying(256),
+		created_on timestamp with time zone NOT NULL,
+		running_time real,
+		CONSTRAINT t_nc_history_pkey PRIMARY KEY (machine_cd, trnx_seq)
+		)
+
+	</update>
+
+	<!-- 테이블 생성 : t_nc_status -->
+	<update id ="beforeStatus" exeType="line">
+		DROP TABLE IF EXISTS t_nc_status
+	</update>
+	<update id ="createStatus" exeType="package">
+		CREATE TABLE public.t_nc_status
+		(
+		machine_cd character varying(32) NOT NULL,
+		trnx_time timestamp with time zone NOT NULL,
+		is_connected character(1) NOT NULL DEFAULT '0'::bpchar,
+		cnc_type character varying(2),
+		mt_type character varying(2),
+		series character varying(4),
+		version character varying(4),
+		max_axis character varying(2),
+		axes character varying(2),
+		addinfo character varying(256),
+		aut integer,
+		run integer,
+		motion integer,
+		mstb integer,
+		alarm integer,
+		prgnum integer,
+		prgmnum integer,
+		acts integer,
+		actf integer,
+		spload integer,
+		spindle_data character varying(256),
+		axis_data character varying(256),
+		part_count integer,
+		parts_total integer,
+		operating_time character varying(256),
+		cutting_time character varying(256),
+		cycle_time character varying(256),
+		modified_on timestamp with time zone NOT NULL,
+		running_time real,
+		CONSTRAINT pk_t_sta_equip PRIMARY KEY (machine_cd)
+		)
+	</update>
+
+	<!-- 테이블 생성 : FOC_V01_IMAGE -->
+	<update id ="beforeImage" exeType="line">
+		DROP TABLE IF EXISTS "FOC_V01_IMAGE"
+		DROP SEQUENCE IF EXISTS "FOC_V01_IMAGE_Id_Seq"
+		CREATE SEQUENCE "FOC_V01_IMAGE_Id_Seq"
+	</update>
+	<update id ="createImage" exeType="package">
+		CREATE TABLE "FOC_V01_IMAGE" (
+		"Id" integer NOT NULL DEFAULT nextval('"FOC_V01_IMAGE_Id_Seq"'::regclass),
+		machine_cd character varying(32) NOT NULL,
+		images bytea
+		)
+	</update>
+	<update id ="afterImage" exeType="line">
+		ALTER SEQUENCE "FOC_V01_IMAGE_Id_Seq" OWNED BY "FOC_V01_IMAGE"."Id"
+	</update>
+
+	<!-- 테이블 생성 : FOC_V01_USER -->
+	<update id ="beforeUser" exeType="line">
+		DROP TABLE IF EXISTS "FOC_V01_USER"
+		DROP SEQUENCE IF EXISTS "FOC_V01_USER_Id_Seq"
+		CREATE SEQUENCE "FOC_V01_USER_Id_Seq"
+	</update>
+	<update id ="createUser" exeType="package">
+		CREATE TABLE public."FOC_V01_USER"
+		(
+		"Id" integer NOT NULL DEFAULT nextval('"FOC_V01_USER_Id_Seq"'::regclass),
+		"LoginId" text,
+		"Password" text,
+		"Name" text,
+		"IsAdmin" boolean NOT NULL DEFAULT false,
+		"IsDeleted" boolean NOT NULL DEFAULT false,
+		"CreatedDate" timestamp with time zone NOT NULL,
+		"EMAIL" character(100),
+		"PHONE" character(30),
+		"USE_YN" character(1),
+		"USER_GBN" character(1)
+		)
+	</update>
+	<update id ="afterUser" exeType="line">
+		ALTER SEQUENCE "FOC_V01_USER_Id_Seq" OWNED BY "FOC_V01_USER"."Id"
+	</update>
+
+	<!-- 테이블 생성 : t_cd_key -->
+	<update id ="beforeKey" exeType="line">
+		DROP TABLE IF EXISTS t_cd_key
+	</update>
+	<update id ="createKey" exeType="package">
+		CREATE TABLE public.t_cd_key
+		(
+		key_gbn character(3) NOT NULL,
+		certification_key character(50) NOT NULL,
+		createdate date,
+		createemp character(10),
+		modifydate date,
+		modifyemp character(10),
+		CONSTRAINT pk_t_cd_key PRIMARY KEY (key_gbn, certification_key)
+		)
+	</update>
+
+	<!-- 테이블 생성 : t_nc_api --> 
+	<update id ="beforeApi" exeType="line">
+		DROP TABLE IF EXISTS t_nc_api
+		DROP SEQUENCE IF EXISTS t_nc_api_id_seq
+		CREATE SEQUENCE t_nc_api_Id_Seq
+	</update>
+	<update id ="createApi" exeType="package">
+		CREATE TABLE public.t_nc_api
+		(
+		Id integer NOT NULL DEFAULT nextval('t_nc_api_Id_seq'::regclass),
+		api_dt character(10) NOT NULL,
+		crtfckey character(10) NOT NULL,
+		logdt character(30) NOT NULL,
+		usese character(30),
+		sysuser character(1),
+		conectip character(30),
+		datausgqty character(1),
+		CONSTRAINT id PRIMARY KEY (Id, api_dt, crtfckey)
+		)
+	</update>
+	<update id ="afterApi" exeType="line">
+		ALTER SEQUENCE t_nc_api_Id_Seq OWNED BY t_nc_api.Id
+	</update>
+
+	<!-- 테이블 생성 : t_nc_bad -->
+	<update id ="beforeBad" exeType="line">
+		DROP TABLE IF EXISTS t_nc_bad
+		DROP SEQUENCE IF EXISTS t_nc_bad_id_seq
+		CREATE SEQUENCE t_nc_bad_Id_Seq
+	</update>
+	<update id ="createBad" exeType="package">
+		CREATE TABLE public.t_nc_bad
+		(
+		Id integer NOT NULL DEFAULT nextval('t_nc_bad_Id_seq'::regclass),
+		machine_cd text NOT NULL,
+		bad_gbn text NOT NULL,
+		bad_qty integer,
+		bad_dt text,
+		emp_cd text,
+		remark text,
+		created_on timestamp with time zone,
+		modified_on timestamp with time zone,
+		CONSTRAINT machine_cd_bad_gbn PRIMARY KEY (id, machine_cd, bad_gbn)
+		)
+	</update>
+	<update id ="afterBad" exeType="line">
+		ALTER SEQUENCE t_nc_bad_Id_Seq OWNED BY t_nc_bad.Id
+	</update>
+
+	<!-- 테이블 생성 : t_nc_kpi -->
+	<update id ="beforeKpi" exeType="line">
+		DROP TABLE IF EXISTS t_nc_kpi
+		DROP SEQUENCE IF EXISTS t_nc_kpi_id_seq
+		CREATE SEQUENCE t_nc_kpi_Id_Seq
+	</update>
+	<update id ="createKpi" exeType="package">
+		CREATE TABLE public.t_nc_kpi
+		(
+		Id integer NOT NULL DEFAULT nextval('t_nc_kpi_Id_seq'::regclass),
+		kpi_dt character(10) NOT NULL,
+		level_gbn character(10) NOT NULL,
+		kpicertkey character(30) NOT NULL,
+		ocrdttm character(30),
+		systmopryn character(1),
+		trsdttm character(30),
+		kpifldcd character(1),
+		kpidtlcd character(50),
+		kpidtlnm character(50),
+		achrt character(50),
+		msmtvl integer,
+		unt character(50),
+		CONSTRAINT kpi_dt PRIMARY KEY (id, kpi_dt, level_gbn, kpicertkey)
+		)
+	</update>
+	<update id ="afterKpi" exeType="line">
+		ALTER SEQUENCE t_nc_kpi_Id_Seq OWNED BY t_nc_kpi.Id
+	</update>
+
+	<!-- 테이블 생성 : t_cd_running -->
+	<update id ="beforeKpi" exeType="line">
+		DROP TABLE IF EXISTS t_cd_running
+		DROP SEQUENCE IF EXISTS t_cd_running_id_seq
+		CREATE SEQUENCE t_cd_running_id_seq
+	</update>
+	<update id ="createKpi" exeType="package">
+		CREATE TABLE public.t_cd_running
+		(
+		id integer NOT NULL DEFAULT nextval('t_cd_running_id_seq'::regclass),
+		running_cd character(3) NOT NULL,
+		running_nm character(50) NOT NULL,
+		running_yn character(1),
+		CONSTRAINT pk_t_cd_running PRIMARY KEY (id, running_cd)
+		)
+	</update>
+	<update id ="afterKpi" exeType="line">
+		ALTER SEQUENCE t_cd_running_id_seq OWNED BY t_cd_running.Id
+	</update>
+
+	<!-- 테이블 생성 : t_cd_common -->
+	<update id ="beforeCommon" exeType="line">
+		DROP TABLE IF EXISTS t_cd_common
+	</update>
+	<update id ="createCommon" exeType="package">
+		CREATE TABLE public.t_cd_common
+		(
+		  cat_code text NOT NULL,
+		  cat_name text,
+		  cd_code text NOT NULL,
+		  cd_name text,
+		  cd_seq integer,
+		  scomment text,
+		  reg_date date,
+		  reg_emp text,
+		  mdfy_date date,
+		  mdfy_emp text,
+		  CONSTRAINT t_cd_common_pkey PRIMARY KEY (cat_code, cd_code)
+		)
+	</update>
+
+	<!-- 테이블 생성 : t_nc_kpi_auto -->
+	<update id ="beforeKpiAuto" exeType="line">
+		DROP TABLE IF EXISTS t_nc_kpi_auto
+	</update>
+	<update id ="createKpiAuto" exeType="package">
+		CREATE TABLE public.t_nc_kpi_auto
+		(
+			kpi_gbn text NOT NULL,
+			kpi_seq integer NOT NULL,
+			kpi_dtl_cd text,
+			kpi_dtl_nm text,
+			kpi_unit text,
+			before_value integer,
+			reg_date date,
+			reg_emp text,
+			CONSTRAINT t_nc_kpi_auto_pkey PRIMARY KEY (kpi_gbn, kpi_seq)
+		)
+	</update>
+
+	<!-- 테이블 생성 : t_nc_kpi_value -->
+	<update id ="beforeKpiValue" exeType="line">
+		DROP TABLE IF EXISTS t_nc_kpi_value
+	</update>
+	<update id ="createKpiValue" exeType="package">
+		CREATE TABLE public.t_nc_kpi_value
+		(
+			kpi_gbn text NOT NULL, 
+			kpi_value1 integer, 
+			kpi_value2 integer, 
+			CONSTRAINT t_nc_kpi_value_pkey PRIMARY KEY (kpi_gbn)
+		)
+	</update>
+</mapper>

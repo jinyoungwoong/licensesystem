@@ -1,0 +1,113 @@
+﻿@model IEnumerable<KWorks.License.Management.Models.DeviceV1>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.LicenseId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CompanyId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.MacAddress)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ExternalIpAddress)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.InternalIpAddress)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.SerialNo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PC_UserName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PC_DeviceName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Remark)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IsDeleted)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CreatorId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CreatedDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ModifierId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ModifiedDate)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.LicenseId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CompanyId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.MacAddress)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ExternalIpAddress)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.InternalIpAddress)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.SerialNo)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.PC_UserName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.PC_DeviceName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Remark)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsDeleted)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CreatorId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CreatedDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ModifierId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ModifiedDate)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

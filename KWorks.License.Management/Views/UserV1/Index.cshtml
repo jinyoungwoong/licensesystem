@@ -1,0 +1,540 @@
+﻿@model IEnumerable<KWorks.License.Management.Models.UserV1>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        BindSelect('position');
+        BindSelect('organization');
+    });
+
+    function BindSelect(mode) {
+
+        var url = "/PropertyValueV1/GetPosition";
+        if (mode == "organization")
+            url = "/PropertyValueV1/GetOrganization";
+
+        $.ajax({
+            type: "GET",
+            url: url,
+            contentType: "application/json; charset=utf-8",
+            datatype: "json",
+            async: "true",
+            success: function (rdata) {
+                var items = rdata.items;
+                var len = items.length;
+                var str = '';
+
+                str += '<option value="">...</option>';
+
+                for (var i = 0; i < len; i++) {
+                    str += '<option value="' + items[i].id + '">' + items[i].value +'</option>';
+                }
+
+                if (mode == "position") {
+                    $('#selPosition').empty().append(str);
+
+                    $('#selPosition').select2({
+                        minimumResultsForSearch: Infinity
+                    });
+                }
+                else {
+                    $('#selOrganization').empty().append(str);
+
+                    $('#selOrganization').select2({
+                        minimumResultsForSearch: Infinity
+                    });
+                }
+            }
+        });
+    }
+
+    function Create() {
+        var id = $('#hdnUserId').val();
+
+        if ($('#txtId').val().trim() == '') {
+            alert('아이디를 입력하세요.');
+            return false;
+        }
+        else if ($('#txtPwd').val().trim() == '') {
+            alert('패스워드를 입력하세요.');
+            return false;
+        }
+        else if ($('#txtName').val().trim() == '') {
+            alert('이름을 입력하세요.');
+            return false;
+        }
+        else if ($('#selPosition').val().trim() == '') {
+            alert('직급을 선택하세요.');
+            return false;
+        }
+        else if ($('#selOrganization').val().trim() == '') {
+            alert('부서를 선택하세요.');
+            return false;
+        }
+
+        var url = "/UserV1/Create";
+
+        var data = {
+            LoginId: $('#txtId').val(),
+            Password: $('#txtPwd').val(),
+            Name: $('#txtName').val(),
+            OrganizationId: $('#selOrganization').val(),
+            PositionId: $('#selPosition').val(),
+            IsAdmin: $('#chkUser').is(':checked') == true ? false : true, 
+            Remark: $('#txtReamrk').val().replaceAll('\n', '<br>')
+        };
+
+        if (id != 0) {
+            url = "/UserV1/Update";
+
+            data = {
+                Id: id,
+                Password: $('#txtPwd').val(),
+                Name: $('#txtName').val(),
+                OrganizationId: $('#selOrganization').val(),
+                PositionId: $('#selPosition').val(),
+                IsAdmin: $('#chkUser').is(':checked') == true ? false : true,
+                Remark: $('#txtReamrk').val().replaceAll('\n', '<br>')
+            };
+        }
+
+
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: data,
+            async: "true",
+            success: function (rdata) {
+                location.reload();
+            }
+        });
+
+    }
+
+    function OpenCreateModal() {
+        $('#hdnUserId').val(0);
+
+        $("#txtIdTitle").html("아이디");
+        $("#txtId").attr("readonly", false);
+
+        $('#txtId').val('');
+        $('#txtPwd').val('');
+        $('#txtName').val('');
+        $('#selPosition').val('').trigger('change');
+        $('#selOrganization').val('').trigger('change');
+        $('#chkUser').prop('checked', true);
+        $('#chkAdmin').prop('checked', false);
+        $('#txtReamrk').val('');
+
+        $('#kt_modal_add_user').modal('toggle');
+    }
+
+    function OpenUpdateModal(id, loginId, password, name, organizationId, positionId, isAdmin, remark) {
+        $('#hdnUserId').val(id);
+
+        $("#txtIdTitle").html("아이디(수정불가)");
+        $("#txtId").attr("readonly", true);
+
+        $('#txtId').val(loginId);
+        $('#txtPwd').val(password);
+        $('#txtName').val(name);
+        $('#selOrganization').val(organizationId).trigger('change');
+        $('#selPosition').val(positionId).trigger('change');
+        if (isAdmin == 'True') {
+            $('#chkUser').prop('checked', false);
+            $('#chkAdmin').prop('checked', true);
+        }
+        else {
+            $('#chkUser').prop('checked', true);
+            $('#chkAdmin').prop('checked', false);
+        }
+        $('#txtReamrk').val(remark.replaceAll("<br>", "\r\n"));
+
+        $('#kt_modal_add_user').modal('toggle');  
+    }
+
+    function Delete(userId) {
+        var rlt = confirm("삭제하시겠습니까?");
+
+        if (rlt) {
+            var url = "/UserV1/Delete";
+            var data = {
+                Id: userId
+            };
+
+            $.ajax({
+                type: "GET",
+                url: url,
+                data: data,
+                async: "true",
+                success: function (rdata) {
+                    location.reload();
+                }
+            });
+        }
+    }
+</script>
+
+<input type="hidden" id="hdnUserId" value="0" />
+
+<!--begin::Toolbar-->
+<div class="toolbar d-flex flex-stack flex-wrap mb-5 mb-lg-7" id="kt_toolbar">
+    <!--begin::Page title-->
+    <div class="page-title d-flex flex-column py-1">
+        <!--begin::Title-->
+        <h1 class="d-flex align-items-center my-1">
+            <span class="text-dark fw-bold fs-1">사용자관리</span>
+        </h1>
+        <!--end::Title-->
+        <!--begin::Breadcrumb-->
+        <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-1">
+            <!--begin::Item-->
+            <li class="breadcrumb-item text-muted">
+                <a href="../../demo5/dist/index.html" class="text-muted text-hover-primary">Management</a>
+            </li>
+            <!--end::Item-->
+            <!--begin::Item-->
+            <li class="breadcrumb-item">
+                <span class="bullet bg-gray-200 w-5px h-2px"></span>
+            </li>
+            <!--end::Item-->
+            <!--begin::Item-->
+            <li class="breadcrumb-item text-dark">사용자관리</li>
+            <!--end::Item-->
+        </ul>
+        <!--end::Breadcrumb-->
+    </div>
+    <!--end::Page title-->
+</div>
+<!--end::Toolbar-->
+
+<!--begin::Contents-->
+<div class="post" id="kt_post">
+    <!--begin::Card-->
+    <div class="card">
+        <!--begin::Card header-->
+        <div class="card-header border-0 pt-6 row">
+            <!--begin::Card title-->
+            <div class="card-title col-md-6 col-xs-12" style="margin:0 0 15px 0;">
+                <!--begin::Search-->
+                <div class="d-flex align-items-center position-relative my-1" style="width: 100%;">
+                    <!--begin::Svg Icon | path: icons/duotune/general/gen021.svg-->
+                    <span class="svg-icon svg-icon-1 position-absolute ms-6">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect opacity="0.5" x="17.0365" y="15.1223" width="8.15546" height="2" rx="1" transform="rotate(45 17.0365 15.1223)" fill="currentColor" />
+                            <path d="M11 19C6.55556 19 3 15.4444 3 11C3 6.55556 6.55556 3 11 3C15.4444 3 19 6.55556 19 11C19 15.4444 15.4444 19 11 19ZM11 5C7.53333 5 5 7.53333 5 11C5 14.4667 7.53333 17 11 17C14.4667 17 17 14.4667 17 11C17 7.53333 14.4667 5 11 5Z" fill="currentColor" />
+                        </svg>
+                    </span>
+                    <!--end::Svg Icon-->
+                    <input type="text" data-kt-user-table-filter="search" class="form-control form-control-solid ps-14" placeholder="전체 검색" style="width:100%;" />
+                </div>
+                <!--end::Search-->
+            </div>
+            <!--begin::Card title-->
+
+            <div class="col-md-2"></div>
+
+            <!--begin::Card toolbar-->
+            <div class="card-toolbar col-md-4 col-xs-12 " style="margin: 0 0 15px 0;">
+                <!--begin::Toolbar-->
+                <div class="d-flex justify-content-end" data-kt-user-table-toolbar="base"  style="width: 100%;">
+                    <!--begin::Add user-->
+                    <button type="button" class="btn btn-primary" onclick="OpenCreateModal()">
+                        사용자등록
+                    </button>
+                    <!--end::Add user-->
+                </div>
+                <!--end::Toolbar-->
+                <!--begin::Modal - Add task-->
+                <div class="modal fade" id="kt_modal_add_user" tabindex="-1" aria-hidden="true" data-bs-keyboard="false" data-bs-backdrop="static">
+                    <!--begin::Modal dialog-->
+                    <div class="modal-dialog modal-dialog-centered mw-1000px">
+                        <!--begin::Modal content-->
+                        <div class="modal-content">
+                            <!--begin::Modal header-->
+                            <div class="modal-header" id="kt_modal_add_user_header">
+                                <!--begin::Modal title-->
+                                <h2 class="fw-bold">사용자정보</h2>
+                                <!--end::Modal title-->
+                                <!--begin::Close-->
+                                <div class="btn btn-icon btn-sm btn-active-icon-primary" data-kt-users-modal-action="close" data-bs-dismiss="modal">
+                                    <!--begin::Svg Icon | path: icons/duotune/arrows/arr061.svg-->
+                                    <span class="svg-icon svg-icon-1">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="currentColor" />
+                                            <rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="currentColor" />
+                                        </svg>
+                                    </span>
+                                    <!--end::Svg Icon-->
+                                </div>
+                                <!--end::Close-->
+                            </div>
+                            <!--end::Modal header-->
+                            <!--begin::Modal body-->
+                            <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
+                                <!--begin::Form-->
+                                <form id="kt_account_profile_details_form" class="form">
+                                    <!--begin::Scroll-->
+                                    <div class="d-flex flex-column scroll-y me-n7 pe-7" id="kt_modal_add_user_scroll" data-kt-scroll="true" data-kt-scroll-activate="{default: false, lg: true}" data-kt-scroll-max-height="auto" data-kt-scroll-dependencies="#kt_modal_add_user_header" data-kt-scroll-wrappers="#kt_modal_add_user_scroll" data-kt-scroll-offset="300px">
+
+                                        <div class="row">
+                                            <!--begin::Input group-->
+                                            <div class="col-lg-6 fv-row mb-7">
+                                                <!--begin::Label-->
+                                                <label id="txtIdTitle" class="required fw-semibold fs-6 mb-2">아이디</label>
+                                                <!--end::Label-->
+                                                <!--begin::Input-->
+                                                <input type="text" id="txtId" class="form-control form-control-solid mb-3 mb-lg-0" placeholder="아이디를 입력하세요." />
+                                                <!--end::Input-->
+                                            </div>
+                                            <!--end::Input group-->
+                                            <!--begin::Input group-->
+                                            <div class="col-lg-6 fv-row mb-7">
+                                                <!--begin::Label-->
+                                                <label class="required fw-semibold fs-6 mb-2">패스워드</label>
+                                                <!--end::Label-->
+                                                <!--begin::Input-->
+                                                <input type="password" id="txtPwd" class="form-control form-control-solid mb-3 mb-lg-0" placeholder="패스워드를 입력하세요." />
+                                                <!--end::Input-->
+                                            </div>
+                                            <!--end::Input group-->
+                                        </div>
+
+                                        <div class="row">
+                                            <!--begin::Input group-->
+                                            <div class="col-lg-6 fv-row mb-7">
+                                                <!--begin::Label-->
+                                                <label class="required fw-semibold fs-6 mb-2">이름</label>
+                                                <!--end::Label-->
+                                                <!--begin::Input-->
+                                                <input type="text" id="txtName" class="form-control form-control-solid mb-3 mb-lg-0" placeholder="이름을 입력하세요." />
+                                                <!--end::Input-->
+                                            </div>
+                                            <!--end::Input group-->
+                                            <!--begin::Input group-->
+                                            <div class="col-lg-6 fv-row mb-7">
+                                                <!--begin::Label-->
+                                                <label class="required fw-semibold fs-6 mb-2">직급</label>
+                                                <!--end::Label-->
+                                                <!--begin::Input-->
+                                                <select id="selPosition" data-placeholder="직급을 선택하세요." class="form-select form-select-solid form-select-lg fw-semibold">
+                                                    <option value="">직급을 선택하세요.</option>
+                                                    <option value="AF">Afghanistan</option>
+                                                </select>
+                                                <!--end::Input-->
+                                            </div>
+                                            <!--end::Input group-->
+                                        </div>
+
+                                        <div class="row">
+                                            <!--begin::Input group-->
+                                            <div class="col-lg-6 fv-row mb-7">
+                                                <!--begin::Label-->
+                                                <label class="required fw-semibold fs-6 mb-2">부서</label>
+                                                <!--end::Label-->
+                                                <!--begin::Input-->
+                                                <select id="selOrganization" data-placeholder="부서를 선택하세요." class="form-select form-select-solid form-select-lg fw-semibold">
+                                                    <option value="">부서를 선택하세요.</option>
+                                                    <option value="AF">Afghanistan</option>
+                                                </select>
+                                                <!--end::Input-->
+                                            </div>
+                                            <!--end::Input group-->
+                                            <!--begin::Input group-->
+                                            <div class="col-lg-6 fv-row mb-7">
+
+                                            </div>
+                                            <!--end::Input group-->
+                                        </div>
+
+                                        <!--begin::Input group-->
+                                        <div class="row">
+                                            <!--begin::Label-->
+                                            <label class="required fw-semibold fs-6 mb-5">Role</label>
+                                            <!--end::Label-->
+                                            <!--begin::Roles-->
+                                            <!--begin::Input row-->
+                                            <div class="d-flex fv-row">
+                                                <!--begin::Radio-->
+                                                <div class="form-check form-check-custom form-check-solid">
+                                                    <!--begin::Input-->
+                                                    <input class="form-check-input me-3" name="user_role" type="radio" value="0" id="chkUser" checked='checked' />
+                                                    <!--end::Input-->
+                                                    <!--begin::Label-->
+                                                    <label class="form-check-label" for="kt_modal_update_role_option_0">
+                                                        <div class="fw-bold text-gray-800">사용자</div>
+                                                        <div class="text-gray-600"> #업체관리 #라이선스관리(삭제권한없음)</div>
+                                                    </label>
+                                                    <!--end::Label-->
+                                                </div>
+                                                <!--end::Radio-->
+                                            </div>
+                                            <!--end::Input row-->
+                                            <div class='separator separator-dashed my-5'></div>
+                                            <!--begin::Input row-->
+                                            <div class="d-flex fv-row">
+                                                <!--begin::Radio-->
+                                                <div class="form-check form-check-custom form-check-solid">
+                                                    <!--begin::Input-->
+                                                    <input class="form-check-input me-3" name="user_role" type="radio" value="1" id="chkAdmin" />
+                                                    <!--end::Input-->
+                                                    <!--begin::Label-->
+                                                    <label class="form-check-label" for="kt_modal_update_role_option_1">
+                                                        <div class="fw-bold text-gray-800">관리자</div>
+                                                        <div class="text-gray-600">#기준정보관리 #업체관리 #사용자관리 #라이선스관리</div>
+                                                    </label>
+                                                    <!--end::Label-->
+                                                </div>
+                                                <!--end::Radio-->
+                                            </div>
+                                            <!--end::Input row-->
+                                            <div class='separator separator-dashed my-5'></div>
+                                            <!--end::Roles-->
+                                        </div>
+                                        <!--end::Input group-->
+                                        <!--begin::Input group-->
+                                        <div class="fv-row">
+                                            <!--begin::Label-->
+                                            <label class="fw-semibold fs-6 mb-2">비고</label>
+                                            <!--end::Label-->
+                                            <!--begin::Input-->
+                                            <textarea id="txtReamrk" name="txtReamrk" class="form-control form-control-solid mb-3 mb-lg-0" rows="5"></textarea>
+                                            <!--end::Input-->
+                                        </div>
+                                        <!--end::Input group-->
+
+
+
+
+                                    </div>
+                                    <!--end::Scroll-->
+                                    <!--begin::Actions-->
+                                    <div class="text-center pt-15">
+                                        <button type="button" id="btnCreate" class="btn btn-primary" onclick="Create()">
+                                            <span class="indicator-label">저장</span>
+                                        </button>
+                                        <button type="button" id="btnClose" class="btn btn-light me-3" data-bs-dismiss="modal" style="margin-left: 60px;">닫기</button>
+                                    </div>
+                                    <!--end::Actions-->
+                                </form>
+                                <!--end::Form-->
+                            </div>
+                            <!--end::Modal body-->
+                        </div>
+                        <!--end::Modal content-->
+                    </div>
+                    <!--end::Modal dialog-->
+                </div>
+                <!--end::Modal - Add task-->
+            </div>
+            <!--end::Card toolbar-->
+        </div>
+        <!--end::Card header-->
+        <!--begin::Card body-->
+        <div class="card-body py-4">
+            <!--begin::Table-->
+            <table class="table align-middle table-row-dashed fs-6 gy-5" id="kt_table_users">
+                <!--begin::Table head-->
+                <thead>
+                    <!--begin::Table row-->
+                    <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
+                        <th class="min-w-125px">이름</th>
+                        <th class="min-w-125px">직급</th>
+                        <th class="min-w-125px">부서</th>
+                        <th class="min-w-125px">권한</th>
+                        <th class="min-w-125px">수정일</th>
+                        <th class="text-end min-w-100px">Actions</th>
+                    </tr>
+                    <!--end::Table row-->
+                </thead>
+                <!--end::Table head-->
+                <!--begin::Table body-->
+                <tbody class="text-gray-600 fw-semibold">
+                    @foreach (var item in Model)
+                    {
+                        <!--begin::Table row-->
+                        <tr>
+                            <!--begin::User=-->
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Name)
+                            </td>
+                            <!--end::User=-->
+                            <!--begin::Last login=-->
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Positions.Value)
+                            </td>
+                            <!--end::Last login=-->
+                            <!--begin::Role=-->
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Organizations.Value)
+                            </td>
+                            <!--end::Role=-->
+                            <!--begin::Two step=-->
+                            <td>
+                                @if (item.IsAdmin)
+                                {
+                                    <div class="badge badge-light-success fw-bold">
+                                        관리자
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="badge badge-light-info fw-bold">
+                                        사용자
+                                    </div>
+                                }
+                                @*@Html.DisplayFor(modelItem => item.IsAdmin)*@
+                            </td>
+                            <!--end::Two step=-->
+                            <!--begin::Joined-->
+                            <td>
+                                @Convert.ToDateTime(item.ModifiedDate).ToString("yyyy-MM-dd HH:mm")
+                                @*@Html.DisplayFor(modelItem => item.ModifiedDate)*@
+                            </td>
+                            <!--begin::Joined-->
+                            <!--begin::Action=-->
+                            <td class="text-end">
+                                <a href="#" class="btn btn-light btn-active-light-primary btn-sm" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
+                                    Actions
+                                    <!--begin::Svg Icon | path: icons/duotune/arrows/arr072.svg-->
+                                    <span class="svg-icon svg-icon-5 m-0">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M11.4343 12.7344L7.25 8.55005C6.83579 8.13583 6.16421 8.13584 5.75 8.55005C5.33579 8.96426 5.33579 9.63583 5.75 10.05L11.2929 15.5929C11.6834 15.9835 12.3166 15.9835 12.7071 15.5929L18.25 10.05C18.6642 9.63584 18.6642 8.96426 18.25 8.55005C17.8358 8.13584 17.1642 8.13584 16.75 8.55005L12.5657 12.7344C12.2533 13.0468 11.7467 13.0468 11.4343 12.7344Z" fill="currentColor" />
+                                        </svg>
+                                    </span>
+                                    <!--end::Svg Icon-->
+                                </a>
+                                <!--begin::Menu-->
+                                <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-125px py-4" data-kt-menu="true">
+                                    <!--begin::Menu item-->
+                                    <div class="menu-item px-3">
+                                        <a href="#" class="menu-link px-3" onclick="OpenUpdateModal('@item.Id', '@item.LoginId', '@item.Password', '@item.Name', '@item.OrganizationId', '@item.PositionId', '@item.IsAdmin', '@item.Remark')">수정</a>
+                                    </div>
+                                    <!--end::Menu item-->
+                                    <!--begin::Menu item-->
+                                    <div class="menu-item px-3">
+                                        <a href="#" class="menu-link px-3" onclick="Delete('@item.Id')">삭제</a>
+                                    </div>
+                                    <!--end::Menu item-->
+                                </div>
+                                <!--end::Menu-->
+                            </td>
+                            <!--end::Action=-->
+                        </tr>
+                        <!--end::Table row-->
+                    }
+                </tbody>
+                <!--end::Table body-->
+            </table>
+            <!--end::Table-->
+        </div>
+        <!--end::Card body-->
+    </div>
+    <!--end::Card-->
+</div>
+<!--end::Contents-->

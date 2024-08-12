@@ -1,0 +1,967 @@
+﻿@model IEnumerable<KWorks.License.Management.Models.LicenseV1>
+
+@{
+    ViewData["Title"] = "라이선스관리";
+}
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        BindSelect('user');
+        BindSelect('program');
+        BindSelect('company');
+
+        $('#data-copy').click(function () {
+            // input에 담긴 데이터를 선택
+            $('#txtlicenseKey').select();
+
+            //  clipboard에 데이터 복사
+            var copy = document.execCommand('copy');
+
+            // 사용자 알림
+            if (copy) {
+                alert("라이선스키가 복사되었습니다.");
+            }
+        });
+
+        $('#selProgram').change(function () {
+            //프로그램구분 중 '설비모니터링(서버)' 선택 시 설비보유대수 입력 항목 출력
+            var val = $('#selProgram').val();
+            if (val == 20) {
+                $('#machineCntPanel').show();
+            }
+            else {
+                $('#machineCntPanel').hide();
+            }
+        });
+
+        $('#txtMachineCnt').focus(function () {
+            //설비보유대수 포커싱 시 전체 Select
+            this.select();
+        });
+    });
+
+    function BindSelect(mode) {
+
+        var url = "/UserV1/GetUser";
+
+        if (mode == "program")
+            url = "/PropertyValueV1/GetProgram";
+        else if (mode == "company")
+            url = "/CompanyV1/GetCompany";
+
+        $.ajax({
+            type: "GET",
+            url: url,
+            contentType: "application/json; charset=utf-8",
+            datatype: "json",
+            async: "true",
+            success: function (rdata) {
+                var items = rdata.items;
+                var len = items.length;
+                var str = '';
+
+                str += '<option value="">...</option>';
+
+                for (var i = 0; i < len; i++) {
+                    if (mode == "user") {
+                        if (@ViewBag.userId == items[i].id)
+                            str += '<option value="' + items[i].id + '" selected="selected">' + items[i].name + '</option>';
+                        else
+                            str += '<option value="' + items[i].id + '">' + items[i].name + '</option>';
+
+                        $('#selUser').empty().append(str);
+                        $('#selUser').select2({
+                            minimumResultsForSearch: Infinity
+                        });
+                    }
+                    else if (mode == "program") {
+                        str += '<option value="' + items[i].id + '">' + items[i].value + '</option>';
+
+                        $('#selProgram').empty().append(str);
+                        $('#selProgram').select2({
+                            minimumResultsForSearch: Infinity
+                        });
+                    }
+                    else {
+                        str += '<option value="' + items[i].id + '">' + items[i].company_Name + '</option>';
+
+                        $('#selCompany').empty().append(str);
+                        $('#selCompany').select2({
+                            minimumResultsForSearch: Infinity
+                        });
+                    }
+                }
+            }
+        });
+    }
+
+    function Create() {
+        var id = $('#hdnLCId').val();
+
+        if ($('#selUser').val().trim() == '') {
+            alert('발급자를 선택하세요.');
+            return false;
+        }
+        else if ($('#selProgram').val().trim() == '') {
+            alert('프로그램 구분값을 선택하세요.');
+            return false;
+        }
+        else if ($('#selCompany').val().trim() == '') {
+            alert('업체명을 선택하세요.');
+            return false;
+        }
+        else if ($('#selProgram').val() == 20 && !($.isNumeric($('#txtMachineCnt').val().trim()))) {
+            alert('설비보유대수 항목은 숫자만 입력가능합니다.');
+            return false;
+        }
+        else if ($('#selProgram').val() == 20 && ($('#txtMachineCnt').val() == null || $('#txtMachineCnt').val().trim() < 1) ) {
+            alert('설비보유대수를 1대 이상 입력하세요.');
+            return false;
+        }
+
+        var url = "/LicenseV1/Create";
+
+        var data = {
+            LicenseKey: $('#txtlicenseKey').val(),
+            UserId: $('#selUser').val(),
+            ProgramId: $('#selProgram').val(),
+            CompanyId: $('#selCompany').val(),
+            IsEnabled: $('#allowchanges').is(':checked'),
+            MachineCnt: $('#selProgram').val() == 20 ? $('#txtMachineCnt').val().trim() : 0,
+            Remark: $('#txtReamrk').val().replaceAll('\n', '<br>')
+        };
+
+        if (id != 0) {
+            url = "/LicenseV1/Update";
+
+            data = {
+                Id: id,
+                UserId: $('#selUser').val(),
+                ProgramId: $('#selProgram').val(),
+                CompanyId: $('#selCompany').val(),
+                IsEnabled: $('#allowchanges').is(':checked'),
+                MachineCnt: $('#selProgram').val() == 20 ? $('#txtMachineCnt').val().trim() : 0,
+                Remark: $('#txtReamrk').val().replaceAll('\n', '<br>')
+            };
+        }
+
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: data,
+            async: "true",
+            success: function (rdata) {
+                location.reload();
+            }
+        });
+    }
+
+    function OpenReadOnlyModal(licenseId) {
+        //라이선스 기본 정보
+        GetLicenseInfo(licenseId);
+        //라이선스 등록 디바이스 정보
+        GetLicenseDeviceInfo(licenseId);
+        //
+        $('#kt_modal_export_users').modal('toggle');
+    }
+
+    function GetLicenseInfo(licenseId) {
+        $.ajax({
+            type: "POST",
+            url: "/LicenseV1/GetLicenseInfo",
+            data: {
+                Id: licenseId
+            },
+            async: "true",
+            success: function (rdata) {
+                var items = rdata.items;
+
+                $('#dbCompanyName').html(items.companyes.company_Name);
+                $('#dbUserName').html(items.users.name);
+                $('#dbLCKey').html(items.licenseKey);
+                $('#dbProgramName').html(items.programs.value);
+                $('#dbIssuedDate').html(items.issuedDate.substring(0, 10));
+                $('#dbRecycleCnt').html(items.recycleCount);
+
+                if (items.isAccess) {
+                    $('#dbIsAccess').html('등록완료');
+                    $('#dbIsAccess').addClass("badge-light-success");
+                    $('#dbIsAccess').removeClass("badge-light-danger");
+                }
+                else {
+                    $('#dbIsAccess').html('미등록');
+                    $('#dbIsAccess').addClass("badge-light-danger");
+                    $('#dbIsAccess').removeClass("badge-light-success");
+                }
+
+                if (items.isEnabled) {
+                    $('#dbIsEnabled').html('키 활성화');
+                    $('#dbIsEnabled').addClass("badge-light-success");
+                    $('#dbIsEnabled').removeClass("badge-light-danger");
+                }
+                else {
+                    $('#dbIsEnabled').html('키 비활성화');
+                    $('#dbIsEnabled').addClass("badge-light-danger");
+                    $('#dbIsEnabled').removeClass("badge-light-success");
+                }
+            }
+        });
+    }
+
+    function GetLicenseDeviceInfo(licenseId) {
+        $.ajax({
+            type: "POST",
+            url: "/DeviceV1/GetLicenseDeviceInfo",
+            data: {
+                Id: licenseId
+            },
+            async: "true",
+            success: function (rdata) {
+                var table = $('#tblDevice').DataTable();
+                table.destroy();
+
+                var items = rdata.items;
+                var len = items.length;
+                var str = '';
+
+                for (var i = 0; i < len; i++) {
+                    str += ' <tr>   ';
+
+                    str += ' <td style="min-width: 150px !important;">                                          ';
+                    str += dateFormat(items[i].modifiedDate);
+                    str += ' </td>                                                                              ';
+
+                    str += ' <td style="min-width: 125px !important;">                                          ';
+                    str += items[i].macAddress;
+                    str += ' </td>                                                                              ';
+
+                    str += ' <td style="min-width: 150px !important;">                                          ';
+                    str += items[i].pC_UserName;
+                    str += ' </td>                                                                              ';
+
+                    str += ' <td style="min-width: 150px !important;">                                          ';
+                    str += items[i].pC_DeviceName;
+                    str += ' </td>                                                                              ';
+
+                    str += ' <td style="min-width: 150px !important;">                                          ';
+                    str += items[i].externalIpAddress;
+                    str += ' </td>                                                                              ';
+
+                    str += ' <td style="min-width: 150px !important;">                                          ';
+                    str += items[i].internalIpAddress;
+                    str += ' </td>                                                                              ';
+
+                    str += ' <td style="min-width: 150px !important;">                                          ';
+                    str += items[i].serialNo == null ? '' : items[i].serialNo ;
+                    str += ' </td>                                                                              ';
+
+                    str += ' </tr>  ';
+                }
+
+                $('.tbodyDevice').empty().append(str);
+
+                $('#tblDevice').DataTable({
+                    "lengthChange": false,
+                    "bInfo": false,
+                    pageLength: 7,
+                    order: [[0, 'desc']],
+                });
+
+                KTMenu.createInstances();
+            }
+        });
+    }
+
+    function OpenCreateModal() {
+        $('#modifiedPanel').hide();
+        $('#hdnLCId').val(0);
+
+        //Clear
+        $('#selUser').val(@ViewBag.userId).trigger('change');
+        $('#selProgram').val('').trigger('change');
+        $('#selCompany').val('').trigger('change');
+        $('#allowchanges').prop('checked', true);
+        $('#txtMachineCnt').val(0);
+        $('#txtReamrk').val('');
+
+        //키 생성
+        CreateLCKey();
+
+        //
+        $('#selUser').prop("disabled", false);
+        $('#selProgram').prop("disabled", false);
+        $('#selCompany').prop("disabled", false);
+
+        //
+        $('#kt_modal_add_user').modal('toggle');
+    }
+
+    function OpenUpdateModal(id, licenseKey, userId, programId, companyId, issuedDate, isEnabled, isAccess, machineCnt, remark) {
+        $('#modifiedPanel').show();
+        $('#hdnLCId').val(id);
+
+        //
+        $('#txtlicenseKey').val(licenseKey);
+        $('#selUser').val(userId).trigger('change');
+        $('#selProgram').val(programId).trigger('change');
+        $('#selCompany').val(companyId).trigger('change');
+        $('#txtCreateDate').val(issuedDate);
+        //
+        if (isEnabled == "True") {
+            $('#allowchanges').prop('checked', true);
+        }
+        else {
+            $('#allowchanges').prop('checked', false);
+        }
+        //
+        if (isAccess == "True") {
+            $('#txtLCAccess').val('라이선스 등록완료');
+            $('#txtLCAccess').css('background-color', '#3dc343');
+        }
+        else {
+            $('#txtLCAccess').val('라이선스 미등록');
+            $('#txtLCAccess').css('background-color', '#e7567e');
+        }
+        $('#txtMachineCnt').val(machineCnt);
+        $('#txtReamrk').val(remark.replaceAll("<br>", "\r\n"));
+
+
+        if (isAccess == "True") {
+            //등록된 라이선스의 경우 설비보유대수 및 비고만 수정가능 나머지 항목 ReadOnly처리
+            $('#selUser').prop('disabled', true);
+            $('#selProgram').prop('disabled',true);
+            $('#selCompany').prop('disabled',true);
+        }
+        else {
+            $('#selUser').prop("disabled", false);
+            $('#selProgram').prop("disabled", false);
+            $('#selCompany').prop("disabled", false);
+        }
+
+        $('#kt_modal_add_user').modal('toggle');
+    }
+
+    function CreateLCKey() {
+         $.ajax({
+            type: "GET",
+            url: "/LicenseV1/CreateKey",
+            contentType: "application/json; charset=utf-8",
+            datatype: "json",
+            async: "true",
+            success: function (rdata) {
+                var items = rdata.items;
+
+                $('#txtlicenseKey').val(items);
+            }
+        });
+    }
+
+    function dateFormat(val) {
+        return new Date(val).toISOString().replace('T', ' ').replace(/\..*/, '');;
+    }
+
+    function Delete(licenseId, IsAccess) {
+        if (IsAccess == "True") {
+            alert('등록된 라이선스는 삭제하실 수 없습니다.');
+            return;
+        }
+
+
+        var rlt = confirm("삭제하시겠습니까?");
+        if (rlt) {
+            var url = "/LicenseV1/Delete";
+            var data = {
+                Id: licenseId
+            };
+
+            $.ajax({
+                type: "GET",
+                url: url,
+                data: data,
+                async: "true",
+                success: function (rdata) {
+                    location.reload();
+                }
+            });
+        }
+    }
+</script>
+
+
+<input type="hidden" id="hdnLCId" value="0" />
+
+<!--begin::Toolbar-->
+<div class="toolbar d-flex flex-stack flex-wrap mb-5 mb-lg-7" id="kt_toolbar">
+    <!--begin::Page title-->
+    <div class="page-title d-flex flex-column py-1">
+        <!--begin::Title-->
+        <h1 class="d-flex align-items-center my-1">
+            <span class="text-dark fw-bold fs-1">라이선스관리</span>
+        </h1>
+        <!--end::Title-->
+        <!--begin::Breadcrumb-->
+        <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-1">
+            <!--begin::Item-->
+            <li class="breadcrumb-item text-muted">
+                <a href="../../demo5/dist/index.html" class="text-muted text-hover-primary">License</a>
+            </li>
+            <!--end::Item-->
+            <!--begin::Item-->
+            <li class="breadcrumb-item">
+                <span class="bullet bg-gray-200 w-5px h-2px"></span>
+            </li>
+            <!--end::Item-->
+            <!--begin::Item-->
+            <li class="breadcrumb-item text-dark">라이선스관리</li>
+            <!--end::Item-->
+        </ul>
+        <!--end::Breadcrumb-->
+    </div>
+    <!--end::Page title-->
+</div>
+<!--end::Toolbar-->
+
+<div class="post" id="kt_post">
+    <!--begin::Card-->
+    <div class="card">
+        <!--begin::Card header-->
+        <div class="card-header border-0 pt-6 row">
+            <!--begin::Card title-->
+            <div class="card-title col-md-6 col-xs-12" style="margin:0 0 15px 0;">
+                <!--begin::Search-->
+                <div class="d-flex align-items-center position-relative my-1" style="width: 100%;">
+                    <!--begin::Svg Icon | path: icons/duotune/general/gen021.svg-->
+                    <span class="svg-icon svg-icon-1 position-absolute ms-6">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect opacity="0.5" x="17.0365" y="15.1223" width="8.15546" height="2" rx="1" transform="rotate(45 17.0365 15.1223)" fill="currentColor" />
+                            <path d="M11 19C6.55556 19 3 15.4444 3 11C3 6.55556 6.55556 3 11 3C15.4444 3 19 6.55556 19 11C19 15.4444 15.4444 19 11 19ZM11 5C7.53333 5 5 7.53333 5 11C5 14.4667 7.53333 17 11 17C14.4667 17 17 14.4667 17 11C17 7.53333 14.4667 5 11 5Z" fill="currentColor" />
+                        </svg>
+                    </span>
+                    <!--end::Svg Icon-->
+                    <input type="text" data-kt-user-table-filter="search" class="form-control form-control-solid ps-14" placeholder="전체 검색" style="width:100%;" />
+                </div>
+                <!--end::Search-->
+            </div>
+            <!--begin::Card title-->
+
+            <div class="col-md-2"></div>
+
+            <!--begin::Card toolbar-->
+            <div class="card-toolbar col-md-4 col-xs-12 " style="margin: 0 0 15px 0;">
+                <!--begin::Toolbar-->
+                <div class="d-flex justify-content-end" data-kt-user-table-toolbar="base" style="width: 100%;">
+                    <!--begin::Add user-->
+                    <button type="button" class="btn btn-primary" onclick="OpenCreateModal()" >
+                        라이선스등록
+                    </button>
+                    <!--end::Add user-->
+                </div>
+                <!--end::Toolbar-->
+
+                <!--begin::Modal - Adjust Balance-->
+                <div class="modal fade" id="kt_modal_export_users" tabindex="-1" aria-hidden="true" data-bs-keyboard="false" data-bs-backdrop="static">
+                    <!--begin::Modal dialog-->
+                    <div class="modal-dialog modal-dialog-centered mw-lg-1300px">
+                        <!--begin::Modal content-->
+                        <div class="modal-content">
+                            <!--begin::Modal header-->
+                            <div class="modal-header">
+                                <!--begin::Modal title-->
+                                <h2 class="fw-bold">라이선스 등록현황</h2>
+                                <!--end::Modal title-->
+                                <!--begin::Close-->
+                                <div class="btn btn-icon btn-sm btn-active-icon-primary" data-kt-users-modal-action="close" data-bs-dismiss="modal">
+                                    <!--begin::Svg Icon | path: icons/duotune/arrows/arr061.svg-->
+                                    <span class="svg-icon svg-icon-1">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="currentColor" />
+                                            <rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="currentColor" />
+                                        </svg>
+                                    </span>
+                                    <!--end::Svg Icon-->
+                                </div>
+                                <!--end::Close-->
+                            </div>
+                            <!--end::Modal header-->
+                            <!--begin::Modal body-->
+                            <div class="modal-body scroll-y mx-5">
+                                <!--begin::Form-->
+                                <form id="kt_modal_export_users_form" class="form" action="#">
+
+                                    <div class="row">
+                                        <div class="col-xl-3 col-lg-3 col-sm-12 col-12">
+                                            <!--begin::Label-->
+                                            <label class="mb-2" style="font-size: 15px; color: #5b6164; font-weight: 600; margin-left: 2px;">기본정보</label>
+                                            <!--end::Label-->
+                                            <!--begin::Input group-->
+                                            <div class="card mb-8">
+                                                <div class="card-body pt-9 pb-0" style="padding-left: 17px !important;">
+                                                    <!--begin::Details-->
+                                                    <div class="d-flex flex-wrap flex-sm-nowrap mb-6">
+                                                        <!--begin::Wrapper-->
+                                                        <div class="flex-grow-1">
+                                                            <!--begin::Head-->
+                                                            <div class="mb-2">
+
+                                                                <!--begin::Actions-->
+                                                                <div>
+                                                                    <!--begin::Description-->
+                                                                    <div class="mb-1" style="color: #a5a5a5; font-size: 13px; font-weight: 600;">업체명</div>
+                                                                    <!--end::Description-->
+                                                                    <!--begin::Status-->
+                                                                    <div id="dbCompanyName" class="mb-5">
+                                                                        케이솔루션즈
+                                                                    </div>
+                                                                    <!--end::Status-->
+                                                                </div>
+                                                                <!--end::Actions-->
+                                                                <!--begin::Actions-->
+                                                                <div>
+                                                                    <!--begin::Description-->
+                                                                    <div class="mb-1" style="color: #a5a5a5; font-size: 13px; font-weight: 600;">발급자</div>
+                                                                    <!--end::Description-->
+                                                                    <!--begin::Status-->
+                                                                    <div id="dbUserName" class="mb-5">
+                                                                        관리자
+                                                                    </div>
+                                                                    <!--end::Status-->
+                                                                </div>
+                                                                <!--end::Actions-->
+
+                                                                <div class="separator separator-dashed mt-5 mb-4"></div>
+
+
+                                                                <!--begin::Details-->
+                                                                <div>
+                                                                    <!--begin::Description-->
+                                                                    <div class="mb-1" style="color: #a5a5a5; font-size: 13px; font-weight: 600;">
+                                                                        라이선스키
+                                                                        <span id="dbIsAccess" class="badge badge-light-success me-auto" style="margin-left:8px;">등록완료</span>
+                                                                        <span id="dbIsEnabled" class="badge badge-light-success me-auto" style="margin-left:5px;">키활성화</span>
+                                                                    </div>
+                                                                    <!--end::Description-->
+                                                                    <!--begin::Status-->
+                                                                    <div id="dbLCKey" class="mb-5">
+                                                                        CA872931-7049-472A-877C-B16D2D6705C9
+                                                                    </div>
+                                                                    <!--end::Status-->
+                                                                </div>
+                                                                <!--end::Details-->
+                                                                <!--begin::Actions-->
+                                                                <div>
+                                                                    <!--begin::Description-->
+                                                                    <div class="mb-1" style="color: #a5a5a5; font-size: 13px; font-weight: 600;">프로그램유형</div>
+                                                                    <!--end::Description-->
+                                                                    <!--begin::Status-->
+                                                                    <div id="dbProgramName" class="mb-5">
+                                                                        MES Lite
+                                                                    </div>
+                                                                    <!--end::Status-->
+                                                                </div>
+                                                                <!--end::Actions-->
+
+                                                                <div class="separator separator-dashed mt-5 mb-4"></div>
+
+                                                                <!--begin::Actions-->
+                                                                <div>
+                                                                    <!--begin::Description-->
+                                                                    <div class="mb-1" style="color: #a5a5a5; font-size: 13px; font-weight: 600;">발급일</div>
+                                                                    <!--end::Description-->
+                                                                    <!--begin::Status-->
+                                                                    <div id="dbIssuedDate" class="mb-5">
+                                                                        2022-08-22
+                                                                    </div>
+                                                                    <!--end::Status-->
+                                                                </div>
+                                                                <!--end::Actions-->
+                                                                <!--begin::Actions-->
+                                                                <div>
+                                                                    <!--begin::Description-->
+                                                                    <div class="mb-1" style="color: #a5a5a5; font-size: 13px; font-weight: 600;">라이선스 요청 횟수</div>
+                                                                    <!--end::Description-->
+                                                                    <!--begin::Status-->
+                                                                    <div id="dbRecycleCnt" class="mb-5">
+                                                                        75
+                                                                    </div>
+                                                                    <!--end::Status-->
+                                                                </div>
+                                                                <!--end::Actions-->
+
+                                                                <div class="separator separator-dashed mt-5 mb-4"></div>
+
+                                                            </div>
+                                                            <!--end::Head-->
+
+                                                        </div>
+                                                        <!--end::Wrapper-->
+                                                    </div>
+                                                    <!--end::Details-->
+                                                    <div class="separator"></div>
+                                                </div>
+                                            </div>
+                                            <!--end::Input group-->
+                                        </div>
+                                        <div class="col-xl-9 col-lg-9 col-sm-12 col-12">
+                                            <!--begin::Input group-->
+                                            <div class="fv-row mb-10">
+                                                <!--begin::Label-->
+                                                <label class="mb-2" style="font-size: 15px; color: #5b6164; font-weight: 600;">라이선스 등록현황</label>
+                                                <!--end::Label-->
+                                                <!--begin::Input-->
+                                                <!--begin::Table-->
+                                                <table class="table align-middle table-row-dashed fs-6 gy-5" id="tblDevice">
+                                                    <!--begin::Table head-->
+                                                    <thead>
+                                                        <!--begin::Table row-->
+                                                        <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
+                                                            <th class="min-w-125px">등록일</th>
+                                                            <th class="min-w-125px">물리주소</th>
+                                                            <th class="min-w-125px">PC사용자명</th>
+                                                            <th class="min-w-125px">PC명</th>
+                                                            <th class="min-w-125px">외부IP</th>
+                                                            <th class="min-w-125px">내부IP</th>
+                                                            <th class="min-w-125px">PC Serial</th>
+                                                        </tr>
+                                                        <!--end::Table row-->
+                                                    </thead>
+                                                    <!--end::Table head-->
+                                                    <!--begin::Table body-->
+                                                    <tbody  class="tbodyDevice text-gray-600 fw-semibold">
+                                             
+                                                    </tbody>
+                                                    <!--end::Table body-->
+                                                </table>
+                                                <!--end::Table-->
+                                                <!--end::Input-->
+                                            </div>
+                                            <!--end::Input group-->
+                                        </div>
+                                    </div>
+
+                                    <!--begin::Actions-->
+                                    <div class="text-center">
+                                        <button type="button" id="btnClose" class="btn btn-light me-3" data-bs-dismiss="modal">확인</button>
+                                    </div>
+                                    <!--end::Actions-->
+
+                                </form>
+                                <!--end::Form-->
+                            </div>
+                            <!--end::Modal body-->
+                        </div>
+                        <!--end::Modal content-->
+                    </div>
+                    <!--end::Modal dialog-->
+                </div>
+                <!--end::Modal - New Card-->
+
+                <!--begin::Modal - Add task-->
+                <div class="modal fade" id="kt_modal_add_user" tabindex="-1" aria-hidden="true" data-bs-keyboard="false" data-bs-backdrop="static">
+                    <!--begin::Modal dialog-->
+                    <div class="modal-dialog modal-dialog-centered mw-1000px">
+                        <!--begin::Modal content-->
+                        <div class="modal-content">
+                            <!--begin::Modal header-->
+                            <div class="modal-header" id="kt_modal_add_user_header">
+                                <!--begin::Modal title-->
+                                <h2 class="fw-bold">라이선스정보</h2>
+                                <!--end::Modal title-->
+                                <!--begin::Close-->
+                                <div class="btn btn-icon btn-sm btn-active-icon-primary" data-kt-users-modal-action="close" data-bs-dismiss="modal">
+                                    <!--begin::Svg Icon | path: icons/duotune/arrows/arr061.svg-->
+                                    <span class="svg-icon svg-icon-1">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="currentColor" />
+                                            <rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="currentColor" />
+                                        </svg>
+                                    </span>
+                                    <!--end::Svg Icon-->
+                                </div>
+                                <!--end::Close-->
+                            </div>
+                            <!--end::Modal header-->
+                            <!--begin::Modal body-->
+                            <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
+                                <!--begin::Form-->
+                                <form id="kt_modal_add_user_form" class="form" action="#">
+                                    <!--begin::Scroll-->
+                                    <div class="d-flex flex-column scroll-y me-n7 pe-7" id="kt_modal_add_user_scroll" data-kt-scroll="true" data-kt-scroll-activate="{default: false, lg: true}" data-kt-scroll-max-height="auto" data-kt-scroll-dependencies="#kt_modal_add_user_header" data-kt-scroll-wrappers="#kt_modal_add_user_scroll" data-kt-scroll-offset="300px">
+
+                                        <div class="row">
+                                            <!--begin::Input group-->
+                                            <div class="col-lg-12 fv-row mb-7">
+                                                <!--begin::Switch-->
+                                                <div class="form-check form-switch form-check-custom form-check-solid" style=" float: right !important;">
+                                                    <input class="form-check-input" type="checkbox" value="" id="allowchanges" checked="checked" style=" width: 54px;" />
+                                                    <label class="form-check-label fw-semibold text-gray-400 ms-3" for="allowchanges">키 활성화</label>
+                                                </div>
+                                                <!--end::Switch-->
+                                            </div>
+                                            <!--end::Input group-->
+                                        </div>
+
+                                        <div class="row">
+                                            <!--begin::Input group-->
+                                            <div class="col-lg-6 fv-row mb-7">
+                                                <!--begin::Label-->
+                                                <div class="d-flex align-items-stretch justify-content-between flex-lg-grow-1">
+                                                    <div class="required fw-semibold fs-6 mb-2">라이선스키(수정불가)</div>
+                                                    <div id="data-copy" style="padding-right: 7px; color: #1463c5; font-weight: 700; cursor:pointer">
+                                                        Copy
+                                                    </div>
+                                                </div>
+                                                <!--end::Label-->
+                                                <!--begin::Input-->
+                                                <input type="text" id="txtlicenseKey" class="form-control form-control-solid mb-3 mb-lg-0" placeholder="라이선스키 발급중.." readonly="readonly" style="background-color: #568fe7; color: white; --kt-input-placeholder-color: white !important; --kt-input-solid-placeholder-color: white;" />
+                                                <!--end::Input-->
+                                            </div>
+                                            <!--end::Input group-->
+                                            <!--begin::Input group-->
+                                            <div class="col-lg-6 fv-row mb-7">
+                                                <!--begin::Label-->
+                                                <label class="required fw-semibold fs-6 mb-2">발급자</label>
+                                                <!--end::Label-->
+                                                <!--begin::Input-->
+                                                <select id="selUser" data-placeholder="발급자를 선택하세요." class="form-select form-select-solid form-select-lg fw-semibold">
+                                                    <option value="">발급자를 선택하세요.</option>
+                                                    <option value="AF">No Data</option>
+                                                </select>
+                                                <!--end::Input-->
+                                            </div>
+                                            <!--end::Input group-->
+                                        </div>
+
+                                        <div class="row">
+                                            <!--begin::Input group-->
+                                            <div class="col-lg-6 fv-row mb-7">
+                                                <!--begin::Label-->
+                                                <label class="required fw-semibold fs-6 mb-2">프로그램구분</label>
+                                                <!--end::Label-->
+                                                <!--begin::Input-->
+                                                <select id="selProgram" data-placeholder="구분값을 선택하세요." class="form-select form-select-solid form-select-lg fw-semibold">
+                                                    <option value="">프로그램 구분값을 선택하세요.</option>
+                                                    <option value="AF">No Data</option>
+                                                </select>
+                                                <!--end::Input-->
+                                            </div>
+                                            <!--end::Input group-->
+                                            <!--begin::Input group-->
+                                            <div class="col-lg-6 fv-row mb-7">
+                                                <!--begin::Label-->
+                                                <label class="required fw-semibold fs-6 mb-2">업체명</label>
+                                                <!--end::Label-->
+                                                <!--begin::Input-->
+                                                <select id="selCompany" data-placeholder="업체명을 선택하세요." class="form-select form-select-solid form-select-lg fw-semibold">
+                                                    <option value="">업체명을 선택하세요.</option>
+                                                    <option value="AF">No Data</option>
+                                                </select>
+                                                <!--end::Input-->
+                                            </div>
+                                            <!--end::Input group-->
+                                        </div>
+
+                                        <div id="modifiedPanel" class="row">
+                                            <!--begin::Input group-->
+                                            <div class="col-lg-6 fv-row mb-7">
+                                                <!--begin::Label-->
+                                                <label class="fw-semibold fs-6 mb-2">라이선스 발급일</label>
+                                                <!--end::Label-->
+                                                <!--begin::Input-->
+                                                <input type="text" id="txtCreateDate" class="form-control form-control-solid mb-3 mb-lg-0" value="2022-08-12 14:24" readonly="readonly" />
+                                                <!--end::Input-->
+                                            </div>
+                                            <!--end::Input group-->
+                                            <!--begin::Input group-->
+                                            <div class="col-lg-6 fv-row mb-7">
+                                                <!--begin::Label-->
+                                                <label class="fw-semibold fs-6 mb-2">라이선스 등록유무</label>
+                                                <!--end::Label-->
+                                                <!--begin::Input-->
+                                                <input type="text" id="txtLCAccess" class="form-control form-control-solid mb-3 mb-lg-0" value="라이선스 미등록" readonly="readonly" style="background-color: #e7567e; color: white; text-align: center; font-weight: 700;" />
+                                                <!--end::Input-->
+                                            </div>
+                                            <!--end::Input group-->
+                                        </div>
+
+                                        <div id="machineCntPanel" class="row">
+                                            <!--begin::Input group-->
+                                            <div class="col-lg-6 fv-row mb-7">
+                                                <!--begin::Label-->
+                                                <label class="required fw-semibold fs-6 mb-2">설비 보유 대수</label>
+                                                <!--end::Label-->
+                                                <!--begin::Input-->
+                                                <input type="number" id="txtMachineCnt" class="form-control form-control-solid mb-3 mb-lg-0" value="0" />
+                                                <!--end::Input-->
+                                            </div>
+                                            <!--end::Input group-->
+                                            <!--begin::Input group-->
+                                            <div class="col-lg-6 fv-row mb-7">
+                                              
+                                            </div>
+                                            <!--end::Input group-->
+                                        </div>
+
+                                        <!--begin::Input group-->
+                                        <div class="fv-row">
+                                            <!--begin::Label-->
+                                            <label class="fw-semibold fs-6 mb-2">비고</label>
+                                            <!--end::Label-->
+                                            <!--begin::Input-->
+                                            <textarea id="txtReamrk" name="txtReamrk" class="form-control form-control-solid mb-3 mb-lg-0" rows="5"></textarea>
+                                            <!--end::Input-->
+                                        </div>
+                                        <!--end::Input group-->
+
+
+                                    </div>
+                                    <!--end::Scroll-->
+                                    <!--begin::Actions-->
+                                    <div class="text-center pt-15">
+                                        <button type="button" id="btnCreate" class="btn btn-primary" onclick="Create()">
+                                            <span class="indicator-label">저장</span>
+                                        </button>
+                                        <button type="button" id="btnClose" class="btn btn-light me-3" data-bs-dismiss="modal" style="margin-left: 60px;">닫기</button>
+                                    </div>
+                                    <!--end::Actions-->
+                                </form>
+                                <!--end::Form-->
+                            </div>
+                            <!--end::Modal body-->
+                        </div>
+                        <!--end::Modal content-->
+                    </div>
+                    <!--end::Modal dialog-->
+                </div>
+                <!--end::Modal - Add task-->
+            </div>
+            <!--end::Card toolbar-->
+        </div>
+        <!--end::Card header-->
+        <!--begin::Card body-->
+        <div class="card-body py-4">
+            <!--begin::Table-->
+            <table class="table align-middle table-row-dashed fs-6 gy-5" id="kt_table_users">
+                <!--begin::Table head-->
+                <thead>
+                    <!--begin::Table row-->
+                    <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
+                        <th class="min-w-125px">업체명</th>
+                        <th class="min-w-125px">발급자</th>
+                        <th class="min-w-125px">구분</th>
+                        <th class="min-w-100px">활성화 Y/N</th>
+                        <th class="min-w-100px">등록 Y/N</th>
+                        <th class="min-w-125px">등록일</th>
+                        <th class="text-end min-w-100px">Actions</th>
+                    </tr>
+                    <!--end::Table row-->
+                </thead>
+                <!--end::Table head-->
+                <!--begin::Table body-->
+                <tbody class="text-gray-600 fw-semibold">
+                    @foreach (var item in Model)
+                    {
+                        <!--begin::Table row-->
+                        <tr style="background-color: @(ViewBag.userId.ToString() == item.UserId.ToString() ? "#1d7ee312;" : "") ">
+                            <!--begin::User=-->
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Companyes.Company_Name)
+                            </td>
+                            <!--end::User=-->
+                            <!--begin::Role=-->
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Users.Name)
+                            </td>
+                            <!--end::Role=-->
+                            <!--begin::Last login=-->
+                            <td>
+                                <div class="badge badge-light fw-bold">
+                                    @Html.DisplayFor(modelItem => item.Programs.Value)
+                                </div>
+                            </td>
+                            <!--end::Last login=-->
+                            <!--begin::Two step=-->
+                            <td>
+                                @if (item.IsEnabled)
+                                {
+                                    <div class="badge badge-light-success fw-bold">
+                                        활성화
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="badge badge-light-danger fw-bold">
+                                        비활성화
+                                    </div>
+                                }
+                            </td>
+                            <!--end::Two step=-->
+                            <!--begin::Two step=-->
+                            <td>
+                                @if (item.IsAccess)
+                                {
+                                    <div class="badge badge-light-success fw-bold">
+                                        등록
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="badge badge-light-danger fw-bold">
+                                        미등록
+                                    </div>
+                                }
+                            </td>
+                            <!--end::Two step=-->
+                            <!--begin::Joined-->
+                            <td>
+                                @Convert.ToDateTime(item.ModifiedDate).ToString("yyyy-MM-dd HH:mm")
+                                @*@Html.DisplayFor(modelItem => item.ModifiedDate)*@
+                            </td>
+                            <!--begin::Joined-->
+                            <!--begin::Action=-->
+                            <td class="text-end">
+                                <a href="#" class="btn btn-light btn-active-light-primary btn-sm" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
+                                    Actions
+                                    <!--begin::Svg Icon | path: icons/duotune/arrows/arr072.svg-->
+                                    <span class="svg-icon svg-icon-5 m-0">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M11.4343 12.7344L7.25 8.55005C6.83579 8.13583 6.16421 8.13584 5.75 8.55005C5.33579 8.96426 5.33579 9.63583 5.75 10.05L11.2929 15.5929C11.6834 15.9835 12.3166 15.9835 12.7071 15.5929L18.25 10.05C18.6642 9.63584 18.6642 8.96426 18.25 8.55005C17.8358 8.13584 17.1642 8.13584 16.75 8.55005L12.5657 12.7344C12.2533 13.0468 11.7467 13.0468 11.4343 12.7344Z" fill="currentColor" />
+                                        </svg>
+                                    </span>
+                                    <!--end::Svg Icon-->
+                                </a>
+                                <!--begin::Menu-->
+                                <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-125px py-4" data-kt-menu="true">
+                                    <!--begin::Menu item-->
+                                    <div class="menu-item px-3">
+                                        <a href="#" class="menu-link px-3" onclick="OpenReadOnlyModal('@item.Id')">등록현황</a>
+                                    </div>
+                                    <!--end::Menu item-->
+                                    <!--begin::Menu item-->
+                                    <div class="menu-item px-3">
+                                        <a href="#" class="menu-link px-3" onclick="OpenUpdateModal('@item.Id', '@item.LicenseKey', '@item.UserId', '@item.ProgramId', '@item.CompanyId', '@item.IssuedDate', '@item.IsEnabled', '@item.IsAccess', '@item.MachineCnt', '@item.Remark')">수정</a>
+                                    </div>
+                                    <!--end::Menu item-->
+                                    <!--begin::Menu item-->
+                                    <div class="menu-item px-3">
+                                        <a href="#" class="menu-link px-3" onclick="Delete('@item.Id', '@item.IsAccess')">삭제</a>
+                                    </div>
+                                    <!--end::Menu item-->
+                                </div>
+                                <!--end::Menu-->
+                            </td>
+                            <!--end::Action=-->
+                        </tr>
+                        <!--end::Table row-->
+                    }
+                </tbody>
+                <!--end::Table body-->
+            </table>
+            <!--end::Table-->
+        </div>
+        <!--end::Card body-->
+    </div>
+    <!--end::Card-->
+</div>

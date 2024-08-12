@@ -1,0 +1,99 @@
+﻿@model KWorks.License.Management.Models.DeviceV1
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>DeviceV1</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="LicenseId" class="control-label"></label>
+                <input asp-for="LicenseId" class="form-control" />
+                <span asp-validation-for="LicenseId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CompanyId" class="control-label"></label>
+                <input asp-for="CompanyId" class="form-control" />
+                <span asp-validation-for="CompanyId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="MacAddress" class="control-label"></label>
+                <input asp-for="MacAddress" class="form-control" />
+                <span asp-validation-for="MacAddress" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ExternalIpAddress" class="control-label"></label>
+                <input asp-for="ExternalIpAddress" class="form-control" />
+                <span asp-validation-for="ExternalIpAddress" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="InternalIpAddress" class="control-label"></label>
+                <input asp-for="InternalIpAddress" class="form-control" />
+                <span asp-validation-for="InternalIpAddress" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="SerialNo" class="control-label"></label>
+                <input asp-for="SerialNo" class="form-control" />
+                <span asp-validation-for="SerialNo" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PC_UserName" class="control-label"></label>
+                <input asp-for="PC_UserName" class="form-control" />
+                <span asp-validation-for="PC_UserName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PC_DeviceName" class="control-label"></label>
+                <input asp-for="PC_DeviceName" class="form-control" />
+                <span asp-validation-for="PC_DeviceName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Remark" class="control-label"></label>
+                <input asp-for="Remark" class="form-control" />
+                <span asp-validation-for="Remark" class="text-danger"></span>
+            </div>
+            <div class="form-group form-check">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="IsDeleted" /> @Html.DisplayNameFor(model => model.IsDeleted)
+                </label>
+            </div>
+            <div class="form-group">
+                <label asp-for="CreatorId" class="control-label"></label>
+                <input asp-for="CreatorId" class="form-control" />
+                <span asp-validation-for="CreatorId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CreatedDate" class="control-label"></label>
+                <input asp-for="CreatedDate" class="form-control" />
+                <span asp-validation-for="CreatedDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ModifierId" class="control-label"></label>
+                <input asp-for="ModifierId" class="form-control" />
+                <span asp-validation-for="ModifierId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ModifiedDate" class="control-label"></label>
+                <input asp-for="ModifiedDate" class="form-control" />
+                <span asp-validation-for="ModifiedDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,0 +1,313 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="TestNCMS">
+
+  <!--====================================================-->
+  <!-- 테이블 생성 : tncms_api_log -->
+  <!--====================================================-->
+  <update id ="beforeApi" exeType="line">
+    DROP TABLE IF EXISTS tncms_api_log
+  </update>
+  <update id ="createApi" exeType="package">
+    CREATE TABLE `tncms_api_log` (
+    `ID` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID 증가값',
+    `API_DT` varchar(10) NOT NULL COMMENT 'API 전송일자',
+    `CRTFCKEY` varchar(10) NOT NULL COMMENT 'API인증키',
+    `LOG_DT` varchar(30) DEFAULT NULL COMMENT 'LOG일자',
+    `USESE` varchar(30) DEFAULT NULL COMMENT '비고',
+    `SYSUSER` varchar(100) DEFAULT NULL COMMENT '전송자',
+    `CONECTIP` varchar(100) DEFAULT NULL COMMENT '전송자IP',
+    `DATAUSGQTY` varchar(1) DEFAULT NULL COMMENT '수량',
+    PRIMARY KEY (`ID`,`API_DT`,`CRTFCKEY`)
+    )
+  </update>
+
+  <!--====================================================-->
+  <!-- 테이블 생성 : tncms_bad -->
+  <!--====================================================-->
+  <update id ="beforeBad" exeType="line">
+    DROP TABLE IF EXISTS tncms_bad
+  </update>
+  <update id ="createBad" exeType="package">
+    CREATE TABLE `tncms_bad` (
+    `ID` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID 증가값',
+    `MACHINE_CD` varchar(30) NOT NULL COMMENT '설비코드',
+    `BAD_GBN` varchar(10) NOT NULL COMMENT '불량구분',
+    `BAD_QTY` int(11) DEFAULT NULL COMMENT '불량 수량',
+    `BAD_DT` varchar(10) DEFAULT NULL COMMENT '불량 발생일자',
+    `EMP_CD` varchar(30) DEFAULT NULL COMMENT '담당자',
+    `REMARK` varchar(100) DEFAULT NULL COMMENT '비고',
+    `REG_DT` datetime DEFAULT NULL COMMENT '등록일자',
+    `MDFY_DT` datetime DEFAULT NULL COMMENT '수정일자',
+    PRIMARY KEY (`ID`,`MACHINE_CD`,`BAD_GBN`)
+    )
+  </update>
+
+  <!--====================================================-->
+  <!-- 테이블 생성 : tncms_codes -->
+  <!--====================================================-->
+  <update id ="beforeCommon" exeType="line">
+    DROP TABLE IF EXISTS tncms_codes
+  </update>
+  <update id ="createCommon" exeType="package">
+    CREATE TABLE `tncms_codes` (
+    `CAT_CODE` varchar(30) NOT NULL COMMENT '표준코드',
+    `CAT_NAME` varchar(100) DEFAULT NULL COMMENT '표준코드명',
+    `CD_CODE` varchar(30) NOT NULL COMMENT '상세코드',
+    `CD_NAME` varchar(100) DEFAULT NULL COMMENT '상세코드명',
+    `CD_SEQ` int(11) DEFAULT NULL COMMENT '순번',
+    `REG_DATE` datetime DEFAULT NULL COMMENT '등록일자',
+    `REG_EMP` varchar(30) DEFAULT NULL COMMENT '등록자',
+    `MDFY_DATE` datetime DEFAULT NULL COMMENT '수정일자',
+    `MDFY_EMP` varchar(30) DEFAULT NULL COMMENT '수정자',
+    `SCOMMENT` varchar(100) DEFAULT NULL COMMENT '비고',
+    PRIMARY KEY (`CAT_CODE`,`CD_CODE`)
+    )
+  </update>
+
+  <!--====================================================-->
+  <!-- 테이블 생성 : tncms_history -->
+  <!--====================================================-->
+  <update id ="beforeHistory" exeType="line">
+    DROP TABLE IF EXISTS tncms_history
+  </update>
+  <update id ="createHistory" exeType="package">
+    CREATE TABLE `tncms_history` (
+    `MACHINE_CD` varchar(30) NOT NULL COMMENT '설비코드',
+    `TRNX_SEQ` int(11) NOT NULL COMMENT '순번',
+    `TRNX_TIME` datetime DEFAULT NULL COMMENT '등록일자',
+    `IS_CONNECTED` varchar(1) DEFAULT NULL COMMENT '연결여부',
+    `CNC_TYPE` varchar(2) DEFAULT NULL COMMENT '타입',
+    `MT_TYPE` varchar(2) DEFAULT NULL COMMENT '계열',
+    `SERIES` varchar(4) DEFAULT NULL COMMENT '시리얼번호',
+    `VERSION` varchar(4) DEFAULT NULL COMMENT '버전',
+    `MAX_AXIS` varchar(2) DEFAULT NULL COMMENT '최대축',
+    `AXES` varchar(2) DEFAULT NULL COMMENT '사용축',
+    `ADDINFO` varchar(300) DEFAULT NULL COMMENT '추가정보',
+    `AUT` int(11) DEFAULT NULL COMMENT '모드',
+    `RUN` int(11) DEFAULT NULL COMMENT '상태',
+    `MOTION` int(11) DEFAULT NULL,
+    `MSTB` int(11) DEFAULT NULL,
+    `ALARM` int(11) DEFAULT NULL COMMENT '알람',
+    `PRGNUM` int(11) DEFAULT NULL COMMENT '프로그램번호',
+    `PRGMNUM` int(11) DEFAULT NULL COMMENT '프로그램명',
+    `ACTS` int(11) DEFAULT NULL COMMENT 'RPM',
+    `ACTF` int(11) DEFAULT NULL COMMENT 'FEED',
+    `SPLOAD` int(11) DEFAULT NULL COMMENT 'TORQ',
+    `SPINDLE_DATA` varchar(300) DEFAULT NULL COMMENT '주축정보',
+    `AXIS_DATA` varchar(300) DEFAULT NULL COMMENT '좌표정보',
+    `PART_COUNT` int(11) DEFAULT NULL COMMENT '생산카운트',
+    `OPERATING_TIME` varchar(300) DEFAULT NULL COMMENT '가동시간',
+    `CUTTING_TIME` varchar(300) DEFAULT NULL COMMENT '절삭시간',
+    `CYCLE_TIME` varchar(300) DEFAULT NULL COMMENT '사이클시간',
+    `REG_DATE` datetime DEFAULT NULL COMMENT '수정시간',
+    `RUNNING_TIME` double DEFAULT NULL COMMENT '가동시간(초)',
+    PRIMARY KEY (`MACHINE_CD`,`TRNX_SEQ`)
+    )
+  </update>
+  
+  <!--====================================================-->
+  <!-- 테이블 생성 : tncms_image -->
+  <!--====================================================-->
+  <update id ="beforeImage" exeType="line">
+    DROP TABLE IF EXISTS `tncms_image`;
+  </update>
+
+  <update id ="createImage" exeType="package">
+    CREATE TABLE `tncms_image` (
+    ID int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID 증가값',
+    MACHINE_CD varchar(30) NOT NULL COMMENT '설비코드',
+    IMAGES BLOB DEFAULT NULL COMMENT '이미지',
+    PRIMARY KEY (`ID`)
+    );
+  </update>
+
+  <!--====================================================-->
+  <!-- 테이블 생성 : tncms_kpi_auto_save -->
+  <!--====================================================-->
+  <update id ="beforeKpiAuto" exeType="line">
+    DROP TABLE IF EXISTS tncms_kpi_auto_save
+  </update>
+  <update id ="createKpiAuto" exeType="package">
+    CREATE TABLE `tncms_kpi_auto_save` (
+    `KPI_GBN` varchar(30) NOT NULL COMMENT 'KPI 구분',
+    `KPI_SEQ` int(11) NOT NULL COMMENT '순번',
+    `KPI_DTL_CD` varchar(30) DEFAULT NULL COMMENT 'KPI 상세항목코드',
+    `KPI_DTL_NM` varchar(100) DEFAULT NULL COMMENT 'KPI 상세항목명',
+    `KPI_UNIT` varchar(10) DEFAULT NULL COMMENT '단위',
+    `BEFORE_VALUE` int(11) DEFAULT NULL COMMENT '구축전값',
+    `REG_DATE` datetime DEFAULT NULL COMMENT '등록일자',
+    `REG_EMP` varchar(30) DEFAULT NULL COMMENT '등록자',
+    PRIMARY KEY (`KPI_GBN`,`KPI_SEQ`)
+    )
+  </update>
+
+
+  <!--====================================================-->
+  <!-- 테이블 생성 : tncms_kpi_key -->
+  <!--====================================================-->
+  <update id ="beforeKey" exeType="line">
+    DROP TABLE IF EXISTS tncms_kpi_key
+  </update>
+  <update id ="createKey" exeType="package">
+    CREATE TABLE `tncms_kpi_key` (
+    `KEY_GBN` varchar(3) NOT NULL COMMENT 'KPI/API 구분',
+    `CERTIFICATION_KEY` varchar(100) NOT NULL COMMENT '인증키',
+    `REG_DATE` datetime DEFAULT NULL COMMENT '등록일자',
+    `REG_EMP` varchar(30) DEFAULT NULL COMMENT '등록자',
+    `MDFY_DATE` datetime DEFAULT NULL COMMENT '수정일자',
+    `MDFY_EMP` varchar(30) DEFAULT NULL COMMENT '수정자',
+    PRIMARY KEY (`KEY_GBN`,`CERTIFICATION_KEY`)
+    )
+  </update>
+
+  <!--====================================================-->
+  <!-- 테이블 생성 : tncms_kpi_log -->
+  <!--====================================================-->
+  <update id ="beforeKpi" exeType="line">
+    DROP TABLE IF EXISTS tncms_kpi_log
+  </update>
+  <update id ="createKpi" exeType="package">
+    CREATE TABLE `tncms_kpi_log` (
+    `ID` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID 증가값',
+    `KPI_DT` varchar(10) NOT NULL COMMENT 'KPI 전송일자',
+    `LEVEL_GBN` varchar(10) NOT NULL COMMENT '레벨 구분',
+    `KPICERTKEY` varchar(30) NOT NULL COMMENT 'KPI 인증키',
+    `OCRDTTM` varchar(100) DEFAULT NULL COMMENT 'KPI 전송 시작시간',
+    `SYSTMOPRYN` varchar(1) DEFAULT NULL COMMENT '시스템 여부',
+    `TRSDTTM` varchar(100) DEFAULT NULL COMMENT 'KPI 전송 완료시간',
+    `KPIFLDCD` varchar(1) DEFAULT NULL COMMENT 'KPI 항목코드',
+    `KPIDTLCD` varchar(50) DEFAULT NULL COMMENT 'KPI 상세항목코드',
+    `KPIDTLNM` varchar(50) DEFAULT NULL COMMENT 'KPI 상세항목코드명',
+    `ACHRT` varchar(50) DEFAULT NULL COMMENT '전송값(LV2)',
+    `MSMTVL` int(11) DEFAULT NULL COMMENT '전송값(LV3)',
+    `UNT` varchar(50) DEFAULT NULL COMMENT '단위',
+    PRIMARY KEY (`ID`,`KPI_DT`,`LEVEL_GBN`,`KPICERTKEY`)
+    )
+  </update>
+
+  <!--====================================================-->
+  <!-- 테이블 생성 : tncms_kpi_random -->
+  <!--====================================================-->
+  <update id ="beforeKpiValue" exeType="line">
+    DROP TABLE IF EXISTS tncms_kpi_random
+  </update>
+  <update id ="createKpiValue" exeType="package">
+    CREATE TABLE `tncms_kpi_random` (
+    `KPI_GBN` varchar(30) NOT NULL COMMENT 'KPI 항목',
+    `KPI_VALUE1` int(11) DEFAULT NULL COMMENT '최소범위값',
+    `KPI_VALUE2` varchar(100) DEFAULT NULL COMMENT '최대범위값',
+    PRIMARY KEY (`KPI_GBN`)
+    )
+  </update>
+
+  <!--====================================================-->
+  <!-- 테이블 생성 : tncms_machine -->
+  <!--====================================================-->
+  <update id ="beforeMachine" exeType="line">
+    DROP TABLE IF EXISTS tncms_machine
+  </update>
+  <update id ="createMachine" exeType="package">
+    CREATE TABLE `tncms_machine` (
+    `MACHINE_CD` varchar(30) NOT NULL COMMENT '설비코드',
+    `MACHINE_NM` varchar(100) DEFAULT NULL COMMENT '설비명',
+    `MODEL` varchar(100) DEFAULT NULL COMMENT '모델',
+    `IP_ADDR` varchar(100) DEFAULT NULL COMMENT 'IP주소',
+    `PORT` int(11) DEFAULT NULL COMMENT '포트',
+    `SCOMMENT` varchar(100) DEFAULT NULL COMMENT '비고',
+    `REG_DATE` datetime DEFAULT NULL COMMENT '등록일자',
+    `MDFY_DATE` datetime DEFAULT NULL COMMENT '수정일자',
+    `STARTTIME` datetime DEFAULT concat(curdate(),' 08:00:00') COMMENT '가동 시작 시간',
+    `FINISHTIME` datetime DEFAULT concat(curdate(),' 17:00:00') COMMENT '가동 종료 시간',
+    `EMP_CD` varchar(30) DEFAULT NULL COMMENT '담당자',
+    PRIMARY KEY (`MACHINE_CD`)
+    )
+  </update>
+
+  <!--====================================================-->
+  <!-- 테이블 생성 : tncms_running -->
+  <!--====================================================-->
+  <update id ="beforeKpi" exeType="line">
+    DROP TABLE IF EXISTS tncms_running
+  </update>
+  <update id ="createKpi" exeType="package">
+    CREATE TABLE `tncms_running` (
+    `ID` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID 증가값',
+    `RUNNING_CD` varchar(3) NOT NULL COMMENT '상태코드',
+    `RUNNING_NM` varchar(100) DEFAULT NULL COMMENT '상태코드명',
+    `RUNNING_YN` tinyint(1) DEFAULT NULL COMMENT '가동/비가동 여부',
+    PRIMARY KEY (`ID`,`RUNNING_CD`)
+    )
+  </update>
+
+  <!--====================================================-->
+  <!-- 테이블 생성 : t_nc_status -->
+  <!--====================================================-->
+  <update id ="beforeStatus" exeType="line">
+    DROP TABLE IF EXISTS tncms_status
+  </update>
+  <update id ="createStatus" exeType="package">
+    CREATE TABLE `tncms_status` (
+    `MACHINE_CD` varchar(30) NOT NULL COMMENT '설비코드',
+    `TRNX_TIME` datetime DEFAULT NULL COMMENT '최종변경시간',
+    `IS_CONNECTED` varchar(1) DEFAULT NULL COMMENT '연결여부',
+    `CNC_TYPE` varchar(2) DEFAULT NULL COMMENT '타입',
+    `MT_TYPE` varchar(2) DEFAULT NULL COMMENT '계열',
+    `SERIES` varchar(4) DEFAULT NULL COMMENT '시리얼번호',
+    `VERSION` varchar(4) DEFAULT NULL COMMENT '버전',
+    `MAX_AXIS` varchar(2) DEFAULT NULL COMMENT '최대축',
+    `AXES` varchar(2) DEFAULT NULL COMMENT '사용축',
+    `ADDINFO` varchar(300) DEFAULT NULL COMMENT '추가정보',
+    `AUT` int(11) DEFAULT NULL COMMENT '모드',
+    `RUN` int(11) DEFAULT NULL COMMENT '상태',
+    `MOTION` int(11) DEFAULT NULL,
+    `MSTB` int(11) DEFAULT NULL,
+    `ALARM` int(11) DEFAULT NULL COMMENT '알람',
+    `PRGNUM` int(11) DEFAULT NULL COMMENT '프로그램번호',
+    `PRGMNUM` int(11) DEFAULT NULL COMMENT '프로그램명',
+    `ACTS` int(11) DEFAULT NULL COMMENT 'RPM',
+    `ACTF` int(11) DEFAULT NULL COMMENT 'FEED',
+    `SPLOAD` int(11) DEFAULT NULL COMMENT 'TORQ',
+    `SPINDLE_DATA` varchar(300) DEFAULT NULL COMMENT '주축정보',
+    `AXIS_DATA` varchar(300) DEFAULT NULL COMMENT '좌표정보',
+    `PART_COUNT` int(11) DEFAULT NULL COMMENT '생산카운트',
+    `PARTS_TOTAL` int(11) DEFAULT NULL,
+    `OPERATING_TIME` varchar(300) DEFAULT NULL COMMENT '가동시간',
+    `CUTTING_TIME` varchar(300) DEFAULT NULL COMMENT '절삭시간',
+    `CYCLE_TIME` varchar(300) DEFAULT NULL COMMENT '사이클시간',
+    `MODIFIED_ON` datetime DEFAULT NULL COMMENT '수정시간',
+    `RUNNING_TIME` double DEFAULT NULL COMMENT '가동시간(초)',
+    PRIMARY KEY (`MACHINE_CD`)
+    )
+  </update>
+
+  <!--====================================================-->
+  <!-- 테이블 생성 : tncms_user -->
+  <!--====================================================-->
+  <update id ="beforeUser" exeType="line">
+    DROP TABLE IF EXISTS tncms_user
+  </update>
+  <update id ="createUser" exeType="package">
+    CREATE TABLE `tncms_user` (
+    `ID` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID 증가값',
+    `LOGINID` varchar(100) DEFAULT NULL COMMENT '로그인 ID',
+    `PASSWORD` varchar(100) DEFAULT NULL COMMENT '로그인 패스워드',
+    `NAME` varchar(100) DEFAULT NULL COMMENT '이름',
+    `ISADMIN` tinyint(1) DEFAULT NULL COMMENT '관리자여부(사용안함)',
+    `ISDELETED` tinyint(1) DEFAULT NULL COMMENT '삭제여부',
+    `REG_DATE` datetime DEFAULT NULL COMMENT '생성일자',
+    `EMAIL` varchar(100) DEFAULT NULL COMMENT '이메일',
+    `PHONE` varchar(30) DEFAULT NULL COMMENT '핸드폰번호',
+    `USE_YN` tinyint(1) DEFAULT NULL COMMENT '사용여부',
+    `USER_GBN` tinyint(1) DEFAULT NULL COMMENT '관리자여부',
+    PRIMARY KEY (`ID`)
+    )
+  </update>
+</mapper>
+
+
+
+  
+
+
+

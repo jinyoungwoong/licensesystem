@@ -1,0 +1,41 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31515.178
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KWorks.License.Management", "KWorks.License.Management\KWorks.License.Management.csproj", "{3729E8F9-8FC5-4AD8-8E28-D3066E2C80F7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KWorks.License.Setting.Program", "KWorks.License.Setting.Program\KWorks.License.Setting.Program.csproj", "{9177D491-860B-4FE9-A9F2-899421182D5B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FC_WFM", "KWroks.License.API.Test.Program\FC_WFM\FC_WFM\FC_WFM.csproj", "{58F11F86-3FA3-4D6B-B5A1-16BE55B504FB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3729E8F9-8FC5-4AD8-8E28-D3066E2C80F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3729E8F9-8FC5-4AD8-8E28-D3066E2C80F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3729E8F9-8FC5-4AD8-8E28-D3066E2C80F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3729E8F9-8FC5-4AD8-8E28-D3066E2C80F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9177D491-860B-4FE9-A9F2-899421182D5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9177D491-860B-4FE9-A9F2-899421182D5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9177D491-860B-4FE9-A9F2-899421182D5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9177D491-860B-4FE9-A9F2-899421182D5B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58F11F86-3FA3-4D6B-B5A1-16BE55B504FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58F11F86-3FA3-4D6B-B5A1-16BE55B504FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58F11F86-3FA3-4D6B-B5A1-16BE55B504FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58F11F86-3FA3-4D6B-B5A1-16BE55B504FB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2B7476F7-21B5-4310-A46E-0E489DE8B042}
+	EndGlobalSection
+	GlobalSection(SubversionScc) = preSolution
+		Svn-Managed = True
+		Manager = AnkhSVN2019 - Subversion Support for Visual Studio
+	EndGlobalSection
+EndGlobal

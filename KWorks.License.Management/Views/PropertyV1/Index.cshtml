@@ -1,0 +1,435 @@
+﻿@model IEnumerable<KWorks.License.Management.Models.PropertyV1>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $("#parentsProperty .menu-link").click(function () {
+            var propertyList = document.getElementsByClassName('childLink');
+            for (var i = 0; i < propertyList.length; i++) {
+                document.getElementsByClassName('childLink')[i].classList.remove('active');
+            }
+
+            $(this).addClass('active');
+
+            var propertyId = $(this).children('.menu-title').attr('id').replace('property+', '').trim();
+
+            DataBind(propertyId);
+        });
+    });
+
+    function DataBind(propertyId) {
+
+        $('#hdnPropertyId').val(propertyId);
+
+        var url = "/PropertyValueV1/Index?id=" + propertyId;
+
+        $.ajax({
+            type: "GET",
+            url: url,
+            contentType: "application/json; charset=utf-8",
+            datatype: "json",
+            async: "true",
+            success: function (rdata) {
+                var table = $('#myTable').DataTable();
+                table.destroy();
+
+                var items = rdata.items;
+                var len = items.length;
+                var str = '';
+
+                for (var i = 0; i < len; i++) {
+                    str += ' <tr>                                                                               ';
+
+                    str += ' <td>                                                                               ';
+                    str += items[i].text;
+                    str += ' </td>                                                                              ';
+                    str += ' <td>                                                                               ';
+                    str += items[i].value;
+                    str += ' </td>                                                                              ';
+                    str += ' <td>                                                                               ';
+                    str += dateFormat(items[i].modifiedDate);
+                    str += ' </td>                                                                              ';
+
+                    str += '  <td class="text-end">                                                                                                                                                                                                                                                                                                                                                                                           ';
+                    str += '      <a href="#" class="btn btn-light btn-active-light-primary btn-sm" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">                                                                                                                                                                                                                                                                          ';
+                    str += '         Actions                                                                                                                                                                                                                                                                                                                                                                                                  ';
+                    str += '         <span class="svg-icon svg-icon-5 m-0">                                                                                                                                                                                                                                                                                                                                                               ';
+                    str += '             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">                                                                                                                                                                                                                                                                                                      ';
+                    str += '                 <path d="M11.4343 12.7344L7.25 8.55005C6.83579 8.13583 6.16421 8.13584 5.75 8.55005C5.33579 8.96426 5.33579 9.63583 5.75 10.05L11.2929 15.5929C11.6834 15.9835 12.3166 15.9835 12.7071 15.5929L18.25 10.05C18.6642 9.63584 18.6642 8.96426 18.25 8.55005C17.8358 8.13584 17.1642 8.13584 16.75 8.55005L12.5657 12.7344C12.2533 13.0468 11.7467 13.0468 11.4343 12.7344Z" fill="currentColor" />  ';
+                    str += '             </svg>                                                                                                                                                                                                                                                                                                                                                                                                 ';
+                    str += '         </span>                                                                                                                                                                                                                                                                                                                                                                                                    ';
+                    str += '      </a>                                                                                                                                                                                                                                                                                                                                                                                                       ';
+                    str += '      <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-125px py-4" data-kt-menu="true">                                                                                                                                                                                                                                         ';
+                    str += '          <div class="menu-item px-3">                                                                                                                                                                                                                                                                                                                                                                           ';
+                    str += '             <a href="#" class="menu-link px-3" onclick="OpenUpdateModal(\'' + items[i].id + '\', \'' + items[i].text + '\', \'' + items[i].value + '\', \'' + (items[i].remark == null ? '' : items[i].remark.replace(/(\n|\r\n)/g, '<br>')) + '\')">수정</a>                                                                                                                                                                                                                                                                                                        ';
+                    str += '          </div>                                                                                                                                                                                                                                                                                                                                                                                                     ';
+                    str += '          <div class="menu-item px-3">                                                                                                                                                                                                                                                                                                                                                                           ';
+                    str += '             <a href="#" class="menu-link px-3" onclick="Delete(\'' + items[i].id + '\')">삭제</a>  ';
+                    str += '          </div>                                                                                    ';
+                    str += '     </div>                                                                                         ';
+                    str += '  </td>                                                                                             ';
+
+                    str += ' </tr>                                                                                              ';
+                }
+
+                $('.tbodyPropertyValue').empty().append(str);
+
+                $('#myTable').DataTable({
+                    "lengthChange": false,
+                    "bInfo": false,
+                    pageLength: 500,
+                    order: [[2, 'desc']]
+                });
+
+
+                KTMenu.createInstances();
+            }
+        });
+    }
+
+    function dateFormat(val) {
+        return new Date(val).toISOString().replace('T', ' ').replace(/\..*/, '');;
+    }
+
+    function OpenCreateModal() {
+        $('#txtCode').val('');
+        $('#txtValue').val('');
+        $('#txtReamrk').val('');
+
+        var id = $('#hdnPropertyId').val();
+        if (id == 0) {
+            alert('기준정보(부모) 항목을 선택하시기 바랍니다.');
+        }
+        else {
+            $('#kt_modal_add_user').modal('toggle');
+        }
+    }
+
+    function OpenUpdateModal(id, text, value, remark) {
+        if (id == 20 || id == 23) {
+            alert('설비모니터링 기준정보는 수정 및 삭제 할 수 없습니다.');
+            return;
+        }
+
+        $('#hdnPropertyValueId').val(id);
+        $('#txtCode').val(text);
+        $('#txtValue').val(value);
+        $('#txtReamrk').val(remark.replaceAll("<br>", "\r\n"));
+
+        var id = $('#hdnPropertyId').val();
+
+        if (id == 0) {
+            alert('기준정보(부모) 항목을 선택하시기 바랍니다.');
+        }
+        else {
+            $('#kt_modal_add_user').modal('toggle');
+        }
+    }
+
+    function Create() {
+        var id = $('#hdnPropertyId').val();
+
+        if ($('#txtCode').val().trim() == '') {
+            alert('코드를 입력하세요.');
+            return false;
+        }
+        else if ($('#txtValue').val().trim() == '') {
+            alert('값을 입력하세요.');
+            return false;
+        }
+
+        var url = "/PropertyValueV1/Create";
+        var data = {
+            PropertyId: parseInt(id),
+            Text: $('#txtCode').val(),
+            Value: $('#txtValue').val(),
+            Remark: $('#txtReamrk').val().replaceAll('\n', '<br>')
+        };
+
+        if ($('#hdnPropertyValueId').val() != 0) {
+            url = "/PropertyValueV1/Update";
+            data = {
+                Id: parseInt($('#hdnPropertyValueId').val()),
+                PropertyId: parseInt(id),
+                Text: $('#txtCode').val(),
+                Value: $('#txtValue').val(),
+                Remark: $('#txtReamrk').val().replaceAll('\n', '<br>')
+            };
+        }
+
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: data,
+            async: "true",
+            success: function (rdata) {
+                DataBind(id);
+                $('#btnClose').click();
+                $('#hdnPropertyValueId').val(0);
+            }
+        });
+
+
+    }
+
+    function Delete(propertyId) {
+        if (propertyId == 20 || propertyId == 23) {
+            alert('설비모니터링 기준정보는 수정 및 삭제 할 수 없습니다.');
+            return;
+        }
+
+        var id = $('#hdnPropertyId').val();
+
+
+        var rlt = confirm("삭제하시겠습니까?");
+
+        if (rlt) {
+            var url = "/PropertyValueV1/Delete";
+            var data = {
+                Id: propertyId
+            };
+
+            $.ajax({
+                type: "GET",
+                url: url,
+                data: data,
+                async: "true",
+                success: function (rdata) {
+                    DataBind(id);
+                }
+            });
+        }
+
+
+    }
+</script>
+
+
+<input type="hidden" id="hdnPropertyId" value="0" />
+<input type="hidden" id="hdnPropertyValueId" value="0" />
+
+<!--begin::Toolbar-->
+<div class="toolbar d-flex flex-stack flex-wrap mb-5 mb-lg-7" id="kt_toolbar">
+    <!--begin::Page title-->
+    <div class="page-title d-flex flex-column py-1">
+        <!--begin::Title-->
+        <h1 class="d-flex align-items-center my-1">
+            <span class="text-dark fw-bold fs-1">기준정보관리</span>
+        </h1>
+        <!--end::Title-->
+        <!--begin::Breadcrumb-->
+        <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-1">
+            <!--begin::Item-->
+            <li class="breadcrumb-item text-muted">
+                <a href="../../demo5/dist/index.html" class="text-muted text-hover-primary">Management</a>
+            </li>
+            <!--end::Item-->
+            <!--begin::Item-->
+            <li class="breadcrumb-item">
+                <span class="bullet bg-gray-200 w-5px h-2px"></span>
+            </li>
+            <!--end::Item-->
+            <!--begin::Item-->
+            <li class="breadcrumb-item text-dark">기준정보관리</li>
+            <!--end::Item-->
+        </ul>
+        <!--end::Breadcrumb-->
+    </div>
+    <!--end::Page title-->
+</div>
+<!--end::Toolbar-->
+
+<!--begin::Contents-->
+<div>
+    <div class="d-flex flex-column flex-lg-row">
+
+        <!--begin::Sidebar-->
+        <div class="flex-column flex-lg-row-auto w-100 w-lg-275px mb-10 mb-lg-0">
+            <!--begin::Sticky aside-->
+            <div class="card card-flush mb-0" data-kt-sticky="false" data-kt-sticky-name="inbox-aside-sticky" data-kt-sticky-offset="{default: false, xl: '0px'}" data-kt-sticky-width="{lg: '275px'}" data-kt-sticky-left="auto" data-kt-sticky-top="150px" data-kt-sticky-animation="false" data-kt-sticky-zindex="95">
+                <div class="card-header align-items-center">
+                    <div class="card-title">
+                        <span class="card-label fw-bold text-gray-800">기준정보(부모)</span>
+                    </div>
+                </div>
+                <!--begin::Aside content-->
+                <div class="card-body">
+                    <!--begin::Menu-->
+                    <div id="parentsProperty" class="menu menu-column menu-rounded menu-state-bg menu-state-title-primary">
+                        @foreach (var item in Model)
+                        {
+                            <!--begin::Menu item-->
+                            <div class="menu-item mb-3">
+                                <!--begin::Partnership-->
+                                <span class="menu-link childLink">
+                                    <span class="menu-icon">
+                                        <!--begin::Svg Icon | path: icons/duotune/abstract/abs009.svg-->
+                                        <span class="svg-icon svg-icon-6 svg-icon-success me-3">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M22 12C22 17.5 17.5 22 12 22C6.5 22 2 17.5 2 12C2 6.5 6.5 2 12 2C17.5 2 22 6.5 22 12ZM12 6C8.7 6 6 8.7 6 12C6 15.3 8.7 18 12 18C15.3 18 18 15.3 18 12C18 8.7 15.3 6 12 6Z" fill="currentColor" />
+                                            </svg>
+                                        </span>
+                                        <!--end::Svg Icon-->
+                                    </span>
+                                    <span class="menu-title fw-semibold" id="property+@item.Id">
+                                        @Html.DisplayFor(modelItem => item.Kind)
+
+                                        @*@Html.DisplayFor(modelItem => item.Kind, new { id = item.Id })*@
+
+                                        @*<a asp-controller="PropertyValueV1" asp-action="Index" asp-route-id="@item.Id">@item.Kind</a>*@
+
+                                    </span>
+                                </span>
+                                <!--end::Partnership-->
+                            </div>
+                            <!--end::Menu item-->
+                        }
+                    </div>
+                    <!--end::Menu-->
+                </div>
+                <!--end::Aside content-->
+            </div>
+            <!--end::Sticky aside-->
+        </div>
+        <!--end::Sidebar-->
+        <!--begin::Content-->
+        <div class="flex-lg-row-fluid ms-lg-7 ms-xl-10 post" id="kt_post">
+            <!--begin::Card-->
+            <div class="card">
+                <!--begin::Card header-->
+                <div class="card-header border-0 pt-6">
+                    <div class="card-title">
+                        <div class="d-flex align-items-center position-relative my-1">
+                            
+                        </div>
+                    </div>
+                    <div class="card-toolbar">
+                        <div></div>
+                        <!--begin::Toolbar-->
+                        <div class="d-flex justify-content-end" data-kt-user-table-toolbar="base">
+                            <button type="button" class="btn btn-primary" onclick="OpenCreateModal()">
+                                신규등록
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!--end::Card header-->
+                <!--begin::Card body-->
+                <div class="card-body py-4">
+                    <!--begin::Table-->
+                    <table class="table align-middle table-row-dashed fs-6 gy-5" id="myTable">
+                        <!--begin::Table head-->
+                        <thead>
+                            <!--begin::Table row-->
+                            <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
+                                <th class="min-w-125px">코드</th>
+                                <th class="min-w-125px">값</th>
+                                <th class="min-w-125px">수정일</th>
+                                <th class="text-end min-w-100px">Actions</th>
+                            </tr>
+                            <!--end::Table row-->
+                        </thead>
+                        <!--end::Table head-->
+                        <!--begin::Table body-->
+                        <tbody class="text-gray-600 fw-semibold tbodyPropertyValue">
+                        </tbody>
+                        <!--end::Table body-->
+                    </table>
+                    <!--end::Table-->
+                </div>
+                <!--end::Card body-->
+            </div>
+            <!--end::Card-->
+        </div>
+        <!--end::Content-->
+
+    </div>
+</div>
+<!--end::Contents-->
+
+<!--begin::Modal-->
+<div class="modal fade" id="kt_modal_add_user" tabindex="-1" aria-hidden="true" data-bs-keyboard="false" data-bs-backdrop="static">
+    <!--begin::Modal dialog-->
+    <div class="modal-dialog modal-dialog-centered mw-650px">
+        <!--begin::Modal content-->
+        <div class="modal-content">
+            <!--begin::Modal header-->
+            <div class="modal-header" id="kt_modal_add_user_header">
+                <!--begin::Modal title-->
+                <h2 class="fw-bold">기준정보</h2>
+                <!--end::Modal title-->
+                <!--begin::Close-->
+                <div class="btn btn-icon btn-sm btn-active-icon-primary" data-kt-users-modal-action="close" data-bs-dismiss="modal">
+                    <!--begin::Svg Icon | path: icons/duotune/arrows/arr061.svg-->
+                    <span class="svg-icon svg-icon-1">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="currentColor" />
+                            <rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="currentColor" />
+                        </svg>
+                    </span>
+                    <!--end::Svg Icon-->
+                </div>
+                <!--end::Close-->
+            </div>
+            <!--end::Modal header-->
+            <!--begin::Modal body-->
+            <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
+                <!--begin::Form-->
+                <form id="kt_modal_add_user_form" class="form" action="#">
+                    <!--begin::Scroll-->
+                    <div class="d-flex flex-column scroll-y me-n7 pe-7" id="kt_modal_add_user_scroll" data-kt-scroll="true" data-kt-scroll-activate="{default: false, lg: true}" data-kt-scroll-max-height="auto" data-kt-scroll-dependencies="#kt_modal_add_user_header" data-kt-scroll-wrappers="#kt_modal_add_user_scroll" data-kt-scroll-offset="300px">
+                        <!--begin::Input group-->
+                        <div class="fv-row mb-7">
+                            <!--begin::Label-->
+                            <label class="required fw-semibold fs-6 mb-2">코드</label>
+                            <!--end::Label-->
+                            <!--begin::Input-->
+                            <input type="text" id="txtCode" name="txtCode" class="form-control form-control-solid mb-3 mb-lg-0" placeholder="코드를 입력하세요." />
+                            <!--end::Input-->
+                        </div>
+                        <!--end::Input group-->
+                        <!--begin::Input group-->
+                        <div class="fv-row mb-7">
+                            <!--begin::Label-->
+                            <label class="required fw-semibold fs-6 mb-2">값</label>
+                            <!--end::Label-->
+                            <!--begin::Input-->
+                            <input type="text" id="txtValue" name="txtValue" class="form-control form-control-solid mb-3 mb-lg-0" placeholder="값을 입력하세요." />
+                            <!--end::Input-->
+                        </div>
+                        <!--end::Input group-->
+                        <!--begin::Input group-->
+                        <div class="fv-row mb-7">
+                            <!--begin::Label-->
+                            <label class="fw-semibold fs-6 mb-2">비고</label>
+                            <!--end::Label-->
+                            <!--begin::Input-->
+                            <textarea id="txtReamrk" name="txtReamrk" class="form-control form-control-solid mb-3 mb-lg-0" rows="5"></textarea>
+                            <!--end::Input-->
+                        </div>
+                        <!--end::Input group-->
+                    </div>
+                    <!--end::Scroll-->
+                    <!--begin::Actions-->
+                    <div class="text-center pt-15">
+                        <button type="button" id="btnCreate" class="btn btn-primary" onclick="Create()">
+                            <span class="indicator-label">저장</span>
+                        </button>
+                        <button type="button" id="btnClose" class="btn btn-light me-3" data-bs-dismiss="modal" style="margin-left: 60px;">닫기</button>
+                    </div>
+                    <!--end::Actions-->
+                </form>
+                <!--end::Form-->
+            </div>
+            <!--end::Modal body-->
+        </div>
+        <!--end::Modal content-->
+    </div>
+    <!--end::Modal dialog-->
+</div>
+<!--end::Modal-->
